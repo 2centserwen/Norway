@@ -1,0 +1,1413 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Norway Trip</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+/* ══ DESIGN TOKENS ══════════════════════════════════════════════ */
+:root {
+  --night:#0E0E10; --dusk:#1A1A1F; --dusk2:#242428; --border:#2E2E34;
+  --muted:#6B6B72; --paper:#F4F1EB; --ink:#0E0E10;
+  --transport:#3B82F6; --activity:#10B981; --stay:#F59E0B;
+  --accent:#2A5C45; --accent-light:#D8F3DC;
+  --warn:#C4410C;
+  --serif:'Cormorant Garamond',Georgia,serif;
+  --sans:'DM Sans',sans-serif; --mono:'DM Mono',monospace;
+  --r:12px; --shadow:0 1px 2px rgba(0,0,0,.1),0 4px 20px rgba(0,0,0,.15);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:var(--sans);background:var(--night);color:var(--paper);min-height:100vh;display:flex;flex-direction:column;}
+
+/* ── AUTH ── */
+#authScreen{position:fixed;inset:0;background:var(--night);display:flex;align-items:center;justify-content:center;flex-direction:column;gap:20px;z-index:1000;}
+#authScreen.hidden{display:none;}
+#authScreen h1{font-family:var(--serif);font-size:2.2rem;font-style:italic;color:var(--paper);}
+#authScreen h1 span{color:var(--stay);}
+#authScreen p{color:var(--muted);font-size:13px;text-align:center;max-width:240px;line-height:1.6;}
+.auth-input{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.15);border-radius:10px;color:var(--paper);font-family:var(--mono);font-size:18px;letter-spacing:.2em;padding:13px 18px;width:240px;outline:none;text-align:center;}
+.auth-input:focus{border-color:rgba(255,255,255,.35);}
+.auth-btn{background:var(--paper);color:var(--ink);border:none;border-radius:10px;padding:12px 32px;font-family:var(--sans);font-size:14px;font-weight:600;cursor:pointer;width:240px;}
+.auth-err{color:#F87171;font-size:12px;font-family:var(--mono);}
+
+/* ── LOADING ── */
+#loadScreen{position:fixed;inset:0;background:var(--night);display:flex;align-items:center;justify-content:center;flex-direction:column;gap:14px;z-index:999;}
+#loadScreen.hidden{display:none;}
+.spinner{width:28px;height:28px;border:2px solid rgba(255,255,255,.1);border-top-color:var(--stay);border-radius:50%;animation:spin .7s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg)}}
+#loadScreen p{color:var(--muted);font-size:12px;font-family:var(--mono);}
+
+/* ── APP ── */
+#app{display:none;flex-direction:column;flex:1;}
+#app.on{display:flex;}
+
+/* ── HEADER ── */
+.hdr{background:var(--dusk);border-bottom:1px solid var(--border);padding:0 20px;height:52px;display:flex;align-items:center;gap:12px;flex-shrink:0;}
+.hdr-logo{font-family:var(--serif);font-size:1.3rem;font-style:italic;color:var(--paper);white-space:nowrap;}
+.hdr-logo span{color:var(--stay);}
+.hdr-trip{font-family:var(--sans);font-size:13px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:160px;}
+.hdr-right{display:flex;align-items:center;gap:8px;margin-left:auto;}
+.sync-dot{width:6px;height:6px;border-radius:50%;background:var(--stay);opacity:0;transition:opacity .3s;}
+.sync-dot.on{opacity:1;}
+.sync-dot.saving{background:#F59E0B;animation:pulse .6s infinite;}
+.sync-dot.err{background:#F87171;opacity:1;}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.2}}
+.hdr-btn{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.14);border-radius:7px;color:rgba(255,255,255,.7);font-family:var(--sans);font-size:11px;font-weight:500;padding:4px 10px;cursor:pointer;white-space:nowrap;}
+.hdr-btn:hover{background:rgba(255,255,255,.14);color:var(--paper);}
+.hdr-people{display:flex;gap:3px;}
+.hpill{width:8px;height:8px;border-radius:50%;}
+
+/* ── TABS ── */
+.tabs{background:var(--dusk);border-bottom:1px solid var(--border);padding:0 20px;display:flex;flex-shrink:0;overflow-x:auto;}
+.tab{padding:10px 14px;font-size:11px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;transition:all .15s;font-family:var(--mono);white-space:nowrap;flex-shrink:0;}
+.tab.active{color:var(--paper);border-bottom-color:var(--paper);}
+
+/* ── SECTIONS ── */
+.section{display:none;flex:1;overflow-y:auto;padding:16px 20px 80px;}
+.section.active{display:block;}
+
+/* ── SHARED COMPONENTS ── */
+.card{background:var(--dusk);border:1px solid var(--border);border-radius:var(--r);padding:16px;margin-bottom:14px;}
+.card-title{font-family:var(--serif);font-size:.95rem;font-style:italic;margin-bottom:12px;display:flex;align-items:center;justify-content:space-between;}
+.field{margin-bottom:11px;}
+.field label{display:block;font-size:10px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-family:var(--mono);margin-bottom:4px;}
+.field input,.field select,.field textarea{width:100%;padding:8px 11px;background:var(--dusk2);border:1px solid var(--border);border-radius:8px;color:var(--paper);font-family:var(--sans);font-size:13px;outline:none;transition:border-color .15s;}
+.field input:focus,.field select:focus,.field textarea:focus{border-color:var(--muted);}
+.field input::placeholder,.field textarea::placeholder{color:var(--muted);}
+.field select option{background:var(--dusk2);}
+.field textarea{resize:vertical;min-height:60px;line-height:1.5;}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;}
+.btn-primary{width:100%;padding:12px;background:var(--paper);color:var(--ink);border:none;border-radius:9px;font-family:var(--sans);font-size:14px;font-weight:600;cursor:pointer;transition:opacity .15s;margin-top:4px;}
+.btn-primary:active{opacity:.85;}
+.btn-ghost{background:transparent;border:1px solid var(--border);border-radius:8px;padding:7px 14px;font-size:12px;color:var(--muted);cursor:pointer;font-family:var(--sans);}
+.btn-ghost:hover{border-color:var(--muted);color:var(--paper);}
+.cancel-lnk{font-size:12px;color:var(--muted);background:none;border:none;cursor:pointer;font-family:var(--sans);}
+.pill-tag{display:inline-block;font-family:var(--mono);font-size:9px;padding:1px 6px;border-radius:4px;font-weight:500;vertical-align:middle;margin-left:3px;}
+.chip-row{display:flex;flex-wrap:wrap;gap:5px;margin-top:5px;}
+.chip{padding:4px 10px;border-radius:20px;border:1px solid var(--border);font-size:11px;cursor:pointer;background:transparent;color:var(--muted);font-family:var(--sans);transition:all .15s;}
+.chip.on{border-color:transparent;color:#fff;}
+
+/* ── FAB ── */
+.fab{position:fixed;bottom:20px;right:20px;background:var(--paper);color:var(--ink);width:50px;height:50px;border-radius:50%;border:none;font-size:22px;cursor:pointer;box-shadow:0 4px 20px rgba(0,0,0,.4);z-index:50;display:flex;align-items:center;justify-content:center;}
+.fab:active{transform:scale(.92);}
+
+/* ══ ITINERARY ══════════════════════════════════════════════════ */
+.type-row{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-bottom:12px;}
+.type-btn{display:flex;flex-direction:column;align-items:center;gap:4px;padding:10px 6px;border-radius:10px;border:1.5px solid var(--border);background:transparent;cursor:pointer;color:var(--muted);font-family:var(--sans);font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;transition:all .15s;}
+.type-btn .ti{font-size:18px;}
+.type-btn.at{border-color:var(--transport);color:var(--transport);background:rgba(59,130,246,.08);}
+.type-btn.aa{border-color:var(--activity);color:var(--activity);background:rgba(16,185,129,.08);}
+.type-btn.as{border-color:var(--stay);color:var(--stay);background:rgba(245,158,11,.08);}
+.sub-row{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:12px;}
+.sub-pill{padding:4px 10px;border-radius:20px;border:1px solid var(--border);font-size:11px;cursor:pointer;background:transparent;color:var(--muted);font-family:var(--sans);transition:all .15s;}
+.sub-pill.active{background:var(--dusk2);border-color:var(--paper);color:var(--paper);}
+
+/* inline expense toggle */
+.exp-toggle{display:flex;align-items:center;gap:8px;padding:10px 0;cursor:pointer;user-select:none;font-size:13px;color:var(--muted);border-top:1px solid var(--border);margin-top:8px;}
+.exp-toggle .etick{width:16px;height:16px;border-radius:4px;border:1.5px solid var(--border);display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .15s;}
+.exp-toggle.on .etick{background:var(--accent);border-color:var(--accent);}
+.exp-toggle.on{color:var(--paper);}
+.exp-section{display:none;background:var(--dusk2);border-radius:10px;padding:12px;margin-top:8px;}
+.exp-section.on{display:block;}
+.exp-section .sub-label{font-size:10px;font-weight:600;letter-spacing:.07em;text-transform:uppercase;color:var(--activity);font-family:var(--mono);margin-bottom:10px;}
+
+/* timeline */
+.filter-bar{display:flex;gap:6px;margin-bottom:14px;flex-wrap:wrap;align-items:center;}
+.fbtn{padding:4px 11px;border-radius:20px;border:1px solid var(--border);background:transparent;color:var(--muted);font-size:11px;cursor:pointer;font-family:var(--sans);transition:all .15s;}
+.fbtn.active{background:var(--dusk2);border-color:var(--paper);color:var(--paper);}
+.fbtn.ft.active{border-color:var(--transport);color:var(--transport);background:rgba(59,130,246,.08);}
+.fbtn.fa.active{border-color:var(--activity);color:var(--activity);background:rgba(16,185,129,.08);}
+.fbtn.fs.active{border-color:var(--stay);color:var(--stay);background:rgba(245,158,11,.08);}
+.icount{font-family:var(--mono);font-size:11px;color:var(--muted);margin-left:auto;}
+
+.day-group{margin-bottom:24px;}
+.day-hdr{display:flex;align-items:baseline;gap:10px;margin-bottom:10px;padding-bottom:7px;border-bottom:1px solid var(--border);}
+.day-date{font-family:var(--serif);font-size:1.2rem;font-style:italic;}
+.day-dow{font-family:var(--mono);font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;}
+.day-n{font-family:var(--mono);font-size:10px;color:var(--muted);margin-left:auto;}
+
+.icard{display:flex;gap:10px;background:var(--dusk);border:1px solid var(--border);border-radius:var(--r);padding:11px 13px;margin-bottom:7px;position:relative;overflow:hidden;cursor:pointer;transition:border-color .15s;}
+.icard::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;}
+.icard.transport::before{background:var(--transport);}
+.icard.activity::before{background:var(--activity);}
+.icard.stay::before{background:var(--stay);}
+.icard:active{background:var(--dusk2);}
+.icard.editing{border-color:var(--stay);background:rgba(245,158,11,.04);}
+
+.iico{font-size:18px;width:32px;height:32px;display:flex;align-items:center;justify-content:center;border-radius:8px;flex-shrink:0;}
+.iico.transport{background:rgba(59,130,246,.12);}
+.iico.activity{background:rgba(16,185,129,.12);}
+.iico.stay{background:rgba(245,158,11,.12);}
+
+.ibody{flex:1;min-width:0;}
+.itop{display:flex;align-items:flex-start;gap:6px;margin-bottom:3px;}
+.ititle{font-size:13px;font-weight:500;color:var(--paper);flex:1;line-height:1.3;}
+.sbadge{font-family:var(--mono);font-size:9px;padding:2px 6px;border-radius:4px;flex-shrink:0;}
+.sbadge.planned{background:rgba(107,107,114,.2);color:var(--muted);}
+.sbadge.booked{background:rgba(16,185,129,.15);color:#10B981;}
+.imeta{display:flex;flex-wrap:wrap;gap:5px;align-items:center;margin-top:3px;}
+.mchip{font-family:var(--mono);font-size:10px;color:var(--muted);}
+.inotes{font-size:11px;color:var(--muted);margin-top:4px;font-style:italic;line-height:1.4;}
+.wdots{display:flex;gap:3px;}
+.wdot{width:5px;height:5px;border-radius:50%;}
+.iactions{display:flex;gap:4px;flex-shrink:0;align-self:flex-start;}
+.iact{background:none;border:1px solid var(--border);border-radius:5px;padding:3px 7px;font-size:11px;color:var(--muted);cursor:pointer;font-family:var(--sans);}
+.iact.del:active{border-color:#EF4444;color:#EF4444;}
+
+.undated-hdr{font-family:var(--mono);font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px;padding-bottom:6px;border-bottom:1px dashed var(--border);}
+.empty-tl{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:40vh;gap:10px;color:var(--muted);text-align:center;}
+.empty-tl .ei{font-size:36px;opacity:.4;}
+.empty-tl h3{font-family:var(--serif);font-size:1.2rem;font-style:italic;color:var(--paper);}
+
+/* location search */
+.loc-wrap{position:relative;}
+.loc-results{position:absolute;top:100%;left:0;right:0;background:var(--dusk2);border:1px solid var(--border);border-top:none;border-radius:0 0 8px 8px;z-index:200;max-height:180px;overflow-y:auto;}
+.loc-res{padding:8px 11px;font-size:12px;cursor:pointer;border-bottom:1px solid var(--border);line-height:1.4;}
+.loc-res:last-child{border-bottom:none;}
+.loc-res:active{background:var(--dusk);}
+.loc-res .ln{font-weight:500;color:var(--paper);}
+.loc-res .ls{color:var(--muted);font-size:10px;margin-top:1px;}
+.saved-locs{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:6px;}
+.sloc{padding:3px 9px;border-radius:20px;border:1px solid var(--border);font-size:11px;cursor:pointer;background:transparent;color:var(--muted);font-family:var(--sans);}
+.sloc:active{border-color:var(--muted);color:var(--paper);}
+
+/* ══ EXPENSES ═══════════════════════════════════════════════════ */
+.settings-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px;}
+@media(max-width:600px){.settings-row{grid-template-columns:1fr;}}
+.chips-wrap{display:flex;flex-wrap:wrap;gap:6px;align-items:center;}
+.pchip{display:flex;align-items:center;gap:5px;padding:4px 9px 4px 7px;border-radius:20px;border:1.5px solid var(--border);}
+.pchip .dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;}
+.pchip input{border:none;outline:none;background:transparent;font-family:var(--sans);font-size:12px;font-weight:500;width:56px;}
+.pchip .prm{background:none;border:none;cursor:pointer;color:var(--muted);font-size:12px;padding:0;}
+.add-chip{padding:4px 10px;border-radius:20px;border:1.5px dashed var(--border);background:transparent;font-size:11px;color:var(--muted);cursor:pointer;font-family:var(--sans);}
+.ccy-chip{display:flex;align-items:center;gap:5px;padding:4px 9px;border-radius:20px;border:1.5px solid var(--border);font-family:var(--mono);font-size:11px;}
+.ccy-chip input[type=text]{border:none;outline:none;background:transparent;font-family:var(--mono);font-size:11px;width:34px;text-transform:uppercase;font-weight:600;}
+.ccy-chip input[type=text]:focus{outline:none;}
+.ccy-chip .rateIn{border:none;outline:none;background:transparent;font-family:var(--mono);font-size:11px;width:46px;color:var(--paper);}
+.ccy-chip .star{cursor:pointer;opacity:.3;transition:opacity .15s;font-size:13px;}
+.ccy-chip .star.on{opacity:1;}
+.ccy-chip.settle{border-color:#F59E0B;background:rgba(245,158,11,.08);}
+.ccy-chip .crm{background:none;border:none;cursor:pointer;color:var(--muted);font-size:12px;padding:0;}
+
+.paid-row{display:flex;align-items:center;gap:8px;margin-bottom:7px;}
+.paid-row:last-child{margin-bottom:0;}
+.paid-name{display:flex;align-items:center;gap:5px;font-size:12px;font-weight:500;min-width:60px;}
+.paid-row input{font-family:var(--mono);font-size:12px;padding:6px 9px;border:1px solid var(--border);border-radius:7px;flex:1;outline:none;background:var(--dusk2);color:var(--paper);}
+.paid-hint{font-family:var(--mono);font-size:10px;color:var(--muted);min-width:55px;}
+
+.share-row{display:flex;align-items:center;gap:7px;margin-bottom:7px;}
+.share-row:last-child{margin-bottom:0;}
+.chip-toggle input{display:none;}
+.chip-face{display:flex;align-items:center;gap:5px;padding:4px 9px;border-radius:14px;border:1.5px solid var(--border);background:var(--dusk2);font-size:11px;font-weight:500;cursor:pointer;transition:all .15s;white-space:nowrap;min-width:60px;}
+.share-amt{flex:1;position:relative;}
+.share-sym{position:absolute;left:7px;top:50%;transform:translateY(-50%);font-family:var(--mono);font-size:10px;color:var(--muted);pointer-events:none;}
+.share-amt input{font-family:var(--mono);font-size:12px;padding:6px 8px 6px 18px;border:1px solid var(--border);border-radius:7px;width:100%;outline:none;background:var(--dusk2);color:var(--paper);transition:border-color .15s,opacity .15s;}
+.share-amt input:disabled{opacity:.25;cursor:not-allowed;}
+.share-status{font-family:var(--mono);font-size:10px;padding:4px 8px;border-radius:5px;margin-top:6px;}
+.ss-ok{background:#D1FAE5;color:#065F46;}
+.ss-over{background:#FEE2E2;color:#991B1B;}
+.ss-auto{background:#FEF3C7;color:#92400E;}
+
+/* ccy totals */
+.ccy-totals{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;}
+.ccy-card{background:var(--dusk);border-radius:9px;border:1px solid var(--border);padding:9px 13px;flex:1;min-width:90px;}
+.ccy-label{font-family:var(--mono);font-size:9px;text-transform:uppercase;letter-spacing:.1em;margin-bottom:2px;}
+.ccy-total{font-family:var(--mono);font-size:1rem;font-weight:500;}
+.ccy-sub{font-family:var(--mono);font-size:10px;color:var(--muted);margin-top:1px;}
+
+/* expense table */
+.tbl-wrap{background:var(--dusk);border-radius:var(--r);border:1px solid var(--border);overflow:hidden;margin-bottom:14px;}
+.tbl-hdr{padding:11px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
+.tbl-hdr h3{font-family:var(--serif);font-size:.9rem;font-style:italic;}
+.pill{font-family:var(--mono);font-size:10px;color:var(--muted);background:var(--dusk2);padding:2px 8px;border-radius:9px;}
+table{width:100%;border-collapse:collapse;font-size:12px;}
+thead th{text-align:left;padding:7px 11px;font-size:9px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);background:var(--dusk2);border-bottom:1px solid var(--border);font-family:var(--mono);white-space:nowrap;}
+thead th.hp{color:#60A5FA;background:rgba(59,130,246,.08);border-bottom:2px solid rgba(59,130,246,.2);}
+thead th.hs{color:#34D399;background:rgba(16,185,129,.08);border-bottom:2px solid rgba(16,185,129,.2);}
+tbody tr{border-bottom:1px solid var(--border);transition:background .1s;}
+tbody tr:last-child td{border-bottom:none;}
+tbody tr.isedit td{background:rgba(245,158,11,.05)!important;}
+td{padding:8px 11px;vertical-align:middle;}
+td.cp{background:rgba(59,130,246,.04);}
+td.cs{background:rgba(16,185,129,.04);}
+td.mono{font-family:var(--mono);font-size:11px;}
+.ccy-badge{display:inline-block;font-family:var(--mono);font-size:9px;padding:1px 5px;border-radius:3px;font-weight:600;}
+.skip-badge{font-size:9px;padding:1px 5px;border-radius:3px;background:var(--dusk2);color:var(--muted);font-family:var(--mono);margin-left:2px;}
+.custom-badge{font-size:9px;padding:1px 5px;border-radius:3px;background:rgba(245,158,11,.15);color:#F59E0B;font-family:var(--mono);margin-left:2px;}
+.linked-badge{font-size:9px;padding:1px 5px;border-radius:3px;background:rgba(16,185,129,.12);color:#10B981;font-family:var(--mono);margin-left:2px;}
+.ibt{background:none;border:1px solid transparent;border-radius:5px;padding:2px 6px;font-size:11px;color:var(--muted);cursor:pointer;}
+.ibt:hover,.ibt:active{border-color:var(--border);color:var(--paper);}
+.ibt.del:active{border-color:#EF4444;color:#EF4444;}
+.empty-state{text-align:center;padding:28px;color:var(--muted);font-size:12px;}
+
+/* ══ SETTLEMENT ══════════════════════════════════════════════════ */
+.settle-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px;margin-bottom:16px;}
+.pcard{background:var(--dusk);border-radius:var(--r);border:1px solid var(--border);padding:14px;position:relative;overflow:hidden;}
+.pcard::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;}
+.pc-name{font-family:var(--serif);font-size:.95rem;font-style:italic;margin-bottom:9px;display:flex;align-items:center;gap:6px;}
+.pc-row{display:flex;justify-content:space-between;font-size:11px;padding:3px 0;border-bottom:1px dashed var(--border);}
+.pc-row:last-of-type{border-bottom:none;}
+.pc-lbl{color:var(--muted);}
+.pc-val{font-family:var(--mono);font-size:11px;}
+.bpill{margin-top:9px;padding:6px 10px;border-radius:6px;font-family:var(--mono);font-size:11px;font-weight:500;text-align:center;}
+.bp-pos{background:rgba(16,185,129,.12);color:#10B981;}
+.bp-neg{background:rgba(239,68,68,.12);color:#F87171;}
+.bp-zero{background:var(--dusk2);color:var(--muted);}
+.expand-btn{font-size:10px;color:var(--muted);background:none;border:none;cursor:pointer;margin-top:7px;padding:0;font-family:var(--sans);}
+.detail-panel{font-size:11px;margin-top:7px;display:none;}
+.detail-panel.open{display:block;}
+.drow{display:flex;justify-content:space-between;padding:3px 0;border-bottom:1px dashed var(--border);gap:8px;}
+.drow:last-child{border-bottom:none;}
+.drow span:first-child{color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;}
+.drow span:last-child{font-family:var(--mono);font-size:10px;flex-shrink:0;}
+
+.transfers-box{background:var(--dusk);border-radius:var(--r);border:1px solid var(--border);padding:16px;margin-bottom:14px;}
+.transfers-box h3{font-family:var(--serif);font-size:.95rem;font-style:italic;color:#10B981;margin-bottom:10px;}
+.tline{display:flex;align-items:center;gap:8px;padding:7px 10px;background:var(--dusk2);border-radius:7px;margin-bottom:6px;font-size:12px;}
+.tarrow{color:#10B981;}
+.tamt{font-family:var(--mono);font-weight:500;color:#F59E0B;margin-left:auto;}
+.no-transfer{color:#10B981;font-size:12px;}
+
+/* ══ ANALYSIS ═══════════════════════════════════════════════════ */
+.analysis-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+@media(max-width:600px){.analysis-grid{grid-template-columns:1fr;}}
+.acard{background:var(--dusk);border-radius:var(--r);border:1px solid var(--border);padding:14px;}
+.acard h3{font-family:var(--serif);font-size:.9rem;font-style:italic;margin-bottom:12px;color:var(--paper);}
+.bar-row{display:flex;align-items:center;gap:7px;margin-bottom:6px;}
+.bar-lbl{font-size:11px;color:var(--muted);width:90px;flex-shrink:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.bar-track{flex:1;background:var(--dusk2);border-radius:3px;height:6px;}
+.bar-fill{height:6px;border-radius:3px;}
+.bar-val{font-family:var(--mono);font-size:10px;color:var(--muted);min-width:52px;text-align:right;}
+.stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:7px;}
+.stat-item{background:var(--dusk2);border-radius:7px;padding:9px 11px;}
+.stat-lbl{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;font-family:var(--mono);margin-bottom:2px;}
+.stat-val{font-family:var(--mono);font-size:.95rem;font-weight:500;}
+
+/* ── TOAST ── */
+.toast{position:fixed;bottom:20px;right:16px;background:var(--paper);color:var(--ink);padding:8px 14px;border-radius:8px;font-size:12px;transform:translateY(20px);opacity:0;transition:all .2s;pointer-events:none;z-index:999;font-family:var(--sans);}
+.toast.show{transform:translateY(0);opacity:1;}
+</style>
+</head>
+<body>
+
+<!-- ── LOAD ── -->
+<div id="loadScreen"><div class="spinner"></div><p>Connecting…</p></div>
+
+<!-- ── AUTH ── -->
+<div id="authScreen" class="hidden">
+  <h1>Norway <span>2026</span></h1>
+  <p id="authMsg">Enter password to continue</p>
+  <input class="auth-input" type="password" id="authPw" placeholder="••••••" onkeydown="if(event.key==='Enter')tryAuth()">
+  <button class="auth-btn" onclick="tryAuth()">Continue →</button>
+  <div class="auth-err" id="authErr"></div>
+</div>
+
+<!-- ── APP ── -->
+<div id="app">
+  <header class="hdr">
+    <div class="hdr-logo">Norway <span>&#9421;</span></div>
+    <div class="hdr-trip" id="hdrTrip"></div>
+    <div class="hdr-right">
+      <div class="hdr-people" id="hdrPeople"></div>
+      <div class="sync-dot" id="syncDot"></div>
+    </div>
+  </header>
+
+  <nav class="tabs">
+    <div class="tab active" onclick="switchTab('itinerary')">Itinerary</div>
+    <div class="tab" onclick="switchTab('add-item')">+ Item</div>
+    <div class="tab" onclick="switchTab('expenses')">Expenses</div>
+    <div class="tab" onclick="switchTab('settlement')">Settlement</div>
+    <div class="tab" onclick="switchTab('analysis')">Analysis</div>
+  </nav>
+
+  <!-- ══ ITINERARY TAB ══ -->
+  <div class="section active" id="tab-itinerary">
+    <div class="filter-bar">
+      <button class="fbtn active" data-f="all" onclick="setIFilter('all')">All</button>
+      <button class="fbtn ft" data-f="transport" onclick="setIFilter('transport')">🚆</button>
+      <button class="fbtn fa" data-f="activity"  onclick="setIFilter('activity')">🎭</button>
+      <button class="fbtn fs" data-f="stay"      onclick="setIFilter('stay')">🏨</button>
+      <span class="icount" id="icount"></span>
+    </div>
+    <div id="timeline"></div>
+    <button class="fab" onclick="switchTab('add-item')">＋</button>
+  </div>
+
+  <!-- ══ ADD ITEM TAB ══ -->
+  <div class="section" id="tab-add-item">
+    <div class="card">
+      <div class="card-title">
+        <span id="itemFormTitle">Add Item</span>
+        <button class="cancel-lnk" id="itemCancelBtn" style="display:none" onclick="cancelItemEdit()">Cancel</button>
+      </div>
+
+      <div class="type-row">
+        <button class="type-btn" id="btn-transport" onclick="setType('transport')"><span class="ti">🚆</span>Transport</button>
+        <button class="type-btn" id="btn-activity"  onclick="setType('activity')"><span class="ti">🎭</span>Activity</button>
+        <button class="type-btn" id="btn-stay"      onclick="setType('stay')"><span class="ti">🏨</span>Stay</button>
+      </div>
+      <div class="sub-row" id="subRow"></div>
+
+      <div class="field"><label>Title</label><input id="iTitle" type="text" placeholder="e.g. Bergen → Oslo ferry"></div>
+      <div class="row2">
+        <div class="field"><label>Date</label><input id="iDate" type="date"></div>
+        <div class="field"><label>Status</label>
+          <select id="iStatus"><option value="planned">Planned</option><option value="booked">Booked</option></select>
+        </div>
+      </div>
+      <div id="timeFields">
+        <div class="row2">
+          <div class="field"><label>Start</label><input id="iStart" type="time"></div>
+          <div class="field"><label>End</label><input id="iEnd" type="time"></div>
+        </div>
+      </div>
+      <div id="durField" style="display:none">
+        <div class="field"><label>Duration</label>
+          <select id="iDur"><option value="">—</option><option>30 min</option><option>1 hour</option><option>1.5 hours</option><option>2 hours</option><option>3 hours</option><option>4 hours</option><option>Half day</option><option>Full day</option></select>
+        </div>
+      </div>
+      <div id="stayFields" style="display:none">
+        <div class="row2">
+          <div class="field"><label>Check-in</label><input id="iCheckin" type="time" value="15:00"></div>
+          <div class="field"><label>Check-out</label><input id="iCheckout" type="time" value="11:00"></div>
+        </div>
+      </div>
+
+      <!-- Location -->
+      <div class="field">
+        <label>Location</label>
+        <div id="savedLocsArea"></div>
+        <div class="loc-wrap">
+          <input id="iLocation" type="text" placeholder="Search or type…" autocomplete="off"
+                 oninput="onLocInput()" onblur="setTimeout(clearLocRes,200)">
+          <div class="loc-results" id="locResults" style="display:none"></div>
+        </div>
+      </div>
+
+      <div class="field"><label>Booking URL / ref</label><input id="iBooking" type="text" placeholder="https://… or ref number"></div>
+      <div class="field"><label>Notes</label><textarea id="iNotes" placeholder="Any useful info…"></textarea></div>
+
+      <div class="field">
+        <label>Who's going</label>
+        <div class="chip-row" id="iWhoChips"></div>
+      </div>
+      <div class="field"><label>Added by</label><select id="iAddedBy"></select></div>
+
+      <!-- Inline expense -->
+      <div class="exp-toggle" id="expToggle" onclick="toggleExpSection()">
+        <div class="etick" id="expTick"></div>
+        <span>💰 Add linked expense</span>
+      </div>
+      <div class="exp-section" id="expSection">
+        <div class="exp-section sub-label">Expense details</div>
+        <div class="field">
+          <label>Currency</label>
+          <select id="eCcy" onchange="onExpCcyChange()"></select>
+        </div>
+        <div id="ePaidGrid"></div>
+        <div id="eShareGrid"></div>
+        <div id="eShareStatus" class="share-status"></div>
+      </div>
+
+      <button class="btn-primary" onclick="submitItem()"><span id="itemSubmitLabel">Add to Itinerary</span></button>
+    </div>
+  </div>
+
+  <!-- ══ EXPENSES TAB ══ -->
+  <div class="section" id="tab-expenses">
+    <div class="settings-row">
+      <div class="card" style="margin-bottom:0">
+        <div class="card-title">People <span style="font-family:var(--mono);font-size:9px;color:var(--muted)">(max 4)</span></div>
+        <div class="chips-wrap" id="peopleChips"></div>
+      </div>
+      <div class="card" style="margin-bottom:0">
+        <div class="card-title">Currencies <span style="font-family:var(--mono);font-size:9px;color:var(--muted)">⭐ = settle</span></div>
+        <div class="chips-wrap" id="ccyChips"></div>
+      </div>
+    </div>
+
+    <div class="card" id="expFormCard" style="margin-top:12px">
+      <div class="card-title">
+        <span id="expFormTitle">Add Expense</span>
+        <button class="cancel-lnk" id="expCancelBtn" style="display:none" onclick="cancelExpEdit()">Cancel</button>
+      </div>
+      <div class="row3" style="margin-bottom:11px">
+        <div class="field" style="margin:0"><label>Description</label><input id="fDesc" type="text" placeholder="e.g. Dinner"></div>
+        <div class="field" style="margin:0"><label>Category</label>
+          <select id="fCat"><option>Food</option><option>Transport</option><option>Accommodation</option><option>Activities</option><option>Shopping</option><option>Other</option></select>
+        </div>
+        <div class="field" style="margin:0"><label>Date</label><input id="fDate" type="date"></div>
+      </div>
+      <div class="row2" style="margin-bottom:11px">
+        <div class="field" style="margin:0"><label>Currency</label><select id="fCcy" onchange="onExpFormCcyChange()"></select></div>
+        <div class="field" style="margin:0"><label>Skip?</label><select id="fSkip"><option value="">Count it</option><option value="skip">Skip</option></select></div>
+      </div>
+      <div class="row2">
+        <div style="background:var(--dusk2);border-radius:9px;padding:11px;">
+          <div class="sub-label" style="font-size:10px;font-weight:600;letter-spacing:.07em;text-transform:uppercase;color:#60A5FA;font-family:var(--mono);margin-bottom:8px;">Who paid?</div>
+          <div id="paidGrid"></div>
+        </div>
+        <div style="background:var(--dusk2);border-radius:9px;padding:11px;">
+          <div class="sub-label" style="font-size:10px;font-weight:600;letter-spacing:.07em;text-transform:uppercase;color:#34D399;font-family:var(--mono);margin-bottom:8px;">Split among? <span style="font-weight:400;font-size:9px">(even default)</span></div>
+          <div id="shareGrid"></div>
+          <div id="shareStatus" class="share-status"></div>
+        </div>
+      </div>
+      <button class="btn-primary" onclick="submitExpense()"><span id="expSubmitLabel">Add Expense</span></button>
+    </div>
+
+    <div class="ccy-totals" id="ccyTotals"></div>
+
+    <div class="tbl-wrap">
+      <div class="tbl-hdr"><h3>All Expenses</h3><span class="pill" id="expCount">0</span></div>
+      <div style="overflow-x:auto"><table><thead><tr id="tableHead"></tr></thead><tbody id="tableBody"></tbody></table></div>
+    </div>
+  </div>
+
+  <!-- ══ SETTLEMENT TAB ══ -->
+  <div class="section" id="tab-settlement">
+    <div class="transfers-box" id="transfersBox"></div>
+    <div class="settle-grid" id="settleGrid"></div>
+  </div>
+
+  <!-- ══ ANALYSIS TAB ══ -->
+  <div class="section" id="tab-analysis">
+    <div class="analysis-grid" id="analysisGrid"></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ══════════════════════════════════════════════════════════════════
+// CONFIG — fill these in
+// ══════════════════════════════════════════════════════════════════
+const SUPABASE_URL  = 'YOUR_SUPABASE_URL';      // https://xxxx.supabase.co
+const SUPABASE_KEY  = 'YOUR_SUPABASE_ANON_KEY'; // eyJ...
+const MASTER_PASS   = 'norway2026';             // change this!
+// ══════════════════════════════════════════════════════════════════
+
+// ── CONSTANTS ─────────────────────────────────────────────────────
+const PCOLS = ['#E8547A','#3B82F6','#10B981','#F59E0B'];
+const SUBTYPES = {
+  transport:[
+    {id:'train',icon:'🚆',label:'Train'},{id:'flight',icon:'✈️',label:'Flight'},
+    {id:'boat',icon:'⛴️',label:'Boat'},{id:'bus',icon:'🚌',label:'Bus'},
+    {id:'taxi',icon:'🚕',label:'Taxi'},{id:'other',icon:'🚗',label:'Other'},
+  ],
+  activity:[
+    {id:'food',icon:'🍜',label:'Food'},
+    {id:'nature',icon:'🌿',label:'Hiking & Nature'},
+    {id:'culture',icon:'🎭',label:'Culture'},
+    {id:'other',icon:'☀️',label:'Other'},
+  ],
+  stay:[
+    {id:'airbnb',icon:'🏠',label:'Airbnb'},
+    {id:'hotel',icon:'🏨',label:'Hotel'},
+    {id:'other',icon:'🏡',label:'Other'},
+  ],
+};
+const TICONS={train:'🚆',flight:'✈️',boat:'⛴️',bus:'🚌',taxi:'🚕',food:'🍜',nature:'🌿',culture:'🎭',airbnb:'🏠',hotel:'🏨',other:'📍'};
+const CAT_COLORS={Food:'#F59E0B',Transport:'#3B82F6',Accommodation:'#8B5CF6',Activities:'#10B981',Shopping:'#E8547A',Other:'#6B6B72'};
+const CCY_COLORS={GBP:'#7C3AED',NOK:'#0369A1',EUR:'#065F46',USD:'#1D4ED8'};
+
+// ── STATE ─────────────────────────────────────────────────────────
+let trip = null;           // current trip row
+let expenses = [];         // flat array
+let itinerary = [];        // flat array
+let editExpId = null;      // expense being edited (id)
+let editItemId = null;     // itinerary item being edited (id)
+let expFormState = {included:[],overrides:[]};
+let iWhoSel = [];
+let curType = 'transport', curSub = 'train';
+let iFilter = 'all';
+let expSectionOn = false;
+let locTimer = null;
+let savedPlaces = [];  // from localStorage
+
+// ── SUPABASE ──────────────────────────────────────────────────────
+async function sb(path, method='GET', body=null) {
+  setSyncStatus('saving');
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/${path}`, {
+    method,
+    headers: {'apikey':SUPABASE_KEY,'Authorization':`Bearer ${SUPABASE_KEY}`,'Content-Type':'application/json'},
+    body: body ? JSON.stringify(body) : null,
+  });
+  if (!res.ok) throw new Error(`${res.status}: ${await res.text()}`);
+  const text = await res.text();
+  setSyncStatus('ok');
+  return text ? JSON.parse(text) : null;
+}
+
+function setSyncStatus(s) {
+  const dot = document.getElementById('syncDot');
+  dot.className = 'sync-dot' + (s==='saving'?' saving':s==='err'?' err':' on');
+  if (s==='ok') setTimeout(()=>dot.classList.remove('on'), 1500);
+}
+
+// ── AUTH ──────────────────────────────────────────────────────────
+function tryAuth() {
+  const pw = document.getElementById('authPw').value;
+  if (pw === MASTER_PASS) { enterApp(); return; }
+  if (trip) {
+    const now = new Date(); now.setHours(0,0,0,0);
+    const from  = trip.open_from  ? new Date(trip.open_from)  : null;
+    const until = trip.open_until ? new Date(trip.open_until) : null;
+    const inWin = (!from||now>=from)&&(!until||now<=until);
+    if (inWin && !trip.password) { enterApp(); return; }
+    if (trip.password && pw===trip.password) { enterApp(); return; }
+  }
+  document.getElementById('authErr').textContent = 'Wrong password';
+  document.getElementById('authPw').value = '';
+}
+
+function checkAuth() {
+  if (!trip) { enterApp(); return; }
+  const now = new Date(); now.setHours(0,0,0,0);
+  const from  = trip.open_from  ? new Date(trip.open_from)  : null;
+  const until = trip.open_until ? new Date(trip.open_until) : null;
+  if ((!from||now>=from)&&(!until||now<=until)&&!trip.password) { enterApp(); return; }
+  document.getElementById('authScreen').classList.remove('hidden');
+}
+
+function enterApp() {
+  document.getElementById('authScreen').classList.add('hidden');
+  document.getElementById('app').classList.add('on');
+}
+
+// ── LOAD ──────────────────────────────────────────────────────────
+async function loadAll() {
+  // Load first trip
+  const trips = await sb('trips?select=*&order=created_at.asc&limit=1');
+  trip = trips?.[0] || null;
+
+  if (!trip) {
+    // Create Norway trip automatically
+    trip = {
+      id: 'trip_norway_' + Date.now(),
+      name: 'Norway 2026',
+      password: '',
+      open_from: null, open_until: null,
+      people: [
+        {id:'p0',name:'Eva',    color:PCOLS[0]},
+        {id:'p1',name:'61',     color:PCOLS[1]},
+        {id:'p2',name:'Gege',   color:PCOLS[2]},
+        {id:'p3',name:'Deborah',color:PCOLS[3]},
+      ],
+      currencies: [
+        {code:'GBP', rate:1,    settle:true},
+        {code:'NOK', rate:0.073,settle:false},
+      ],
+    };
+    await sb('trips', 'POST', {
+      id:trip.id, name:trip.name, password:null,
+      open_from:null, open_until:null,
+      people:trip.people, currencies:trip.currencies,
+    });
+  }
+
+  // Load expenses + itinerary
+  const [exps, items] = await Promise.all([
+    sb(`expenses?trip_id=eq.${trip.id}&select=*&order=created_at.asc`),
+    sb(`itinerary_items?trip_id=eq.${trip.id}&select=*&order=date.asc,start_time.asc,created_at.asc`),
+  ]);
+
+  expenses = (exps||[]).map(r=>({
+    id:r.id, desc:r.description, cat:r.category||'Other', date:r.date||'',
+    ccy:r.ccy, rate:r.rate, paid:r.paid,
+    totalSettle:r.total_settle, shares:r.shares,
+    isEven:r.is_even, included:r.included, skip:r.skip,
+  }));
+  sortExpenses();
+
+  itinerary = (items||[]).map(r=>({
+    id:r.id, type:r.type, subtype:r.subtype, title:r.title,
+    date:r.date||'', start:r.start_time||'', end:r.end_time||'',
+    duration:r.duration||'', location:r.location||'',
+    bookingUrl:r.booking_url||'', notes:r.notes||'',
+    status:r.status, addedBy:r.added_by||'', who:r.who||[],
+    expenseId:r.expense_id||null,
+  }));
+
+  // Load saved places from localStorage
+  try { savedPlaces = JSON.parse(localStorage.getItem('norway_places')||'[]'); } catch(e){}
+}
+
+// ── SAVE helpers ──────────────────────────────────────────────────
+async function saveTripMeta() {
+  await sb(`trips?id=eq.${trip.id}`, 'PATCH', {
+    people:trip.people, currencies:trip.currencies,
+    name:trip.name, password:trip.password||null,
+    open_from:trip.open_from||null, open_until:trip.open_until||null,
+  });
+}
+
+async function upsertExpense(e) {
+  const row = {
+    trip_id:currentTripId(), description:e.desc, category:e.cat,
+    date:e.date||null, ccy:e.ccy, rate:e.rate,
+    paid:e.paid, total_settle:e.totalSettle,
+    shares:e.shares, is_even:e.isEven, included:e.included, skip:e.skip,
+  };
+  if (e.id) { await sb(`expenses?id=eq.${e.id}`, 'PATCH', row); }
+  else {
+    row.id = 'e_'+Date.now()+'_'+Math.random().toString(36).slice(2,5);
+    await sb('expenses', 'POST', row);
+    e.id = row.id;
+  }
+}
+
+async function upsertItem(item, expenseId=null) {
+  const row = {
+    trip_id:currentTripId(), type:item.type, subtype:item.subtype,
+    title:item.title, date:item.date||null,
+    start_time:item.start||null, end_time:item.end||null,
+    duration:item.duration||null, location:item.location||null,
+    booking_url:item.bookingUrl||null, notes:item.notes||null,
+    status:item.status, added_by:item.addedBy||null,
+    who:item.who, expense_id:expenseId||item.expenseId||null,
+  };
+  if (item.id) { await sb(`itinerary_items?id=eq.${item.id}`, 'PATCH', row); }
+  else {
+    row.id = 'it_'+Date.now()+'_'+Math.random().toString(36).slice(2,5);
+    await sb('itinerary_items', 'POST', row);
+    item.id = row.id;
+  }
+}
+
+function currentTripId() { return trip?.id||''; }
+function people() { return trip?.people||[]; }
+function ccys()   { return trip?.currencies||[]; }
+function settleCcy() { return ccys().find(c=>c.settle)||ccys()[0]||{code:'GBP',rate:1,settle:true}; }
+function settleRate(ccy) {
+  if (ccy===settleCcy().code) return 1;
+  const from=ccys().find(c=>c.code===ccy)?.rate||1;
+  const to=settleCcy().rate||1;
+  return from/to;
+}
+
+// ── TABS ──────────────────────────────────────────────────────────
+function switchTab(name) {
+  document.querySelectorAll('.tab').forEach((t,i)=>t.classList.toggle('active',['itinerary','add-item','expenses','settlement','analysis'][i]===name));
+  document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+  document.getElementById('tab-'+name).classList.add('active');
+  if (name==='settlement') renderSettlement();
+  if (name==='analysis')   renderAnalysis();
+}
+
+// ── PEOPLE chips ──────────────────────────────────────────────────
+function buildPeopleChips() {
+  const wrap = document.getElementById('peopleChips');
+  wrap.innerHTML = people().map((p,i)=>`
+    <div class="pchip" style="border-color:${p.color}30;background:${p.color}0A">
+      <span class="dot" style="background:${p.color}"></span>
+      <input value="${p.name}" style="color:${p.color}" onchange="renamePerson('${p.id}',this.value)">
+      ${people().length>2?`<button class="prm" onclick="removePerson('${p.id}')">×</button>`:''}
+    </div>`).join('');
+  if (people().length<4) wrap.innerHTML+=`<button class="add-chip" onclick="addPerson()">＋</button>`;
+  buildHdrPeople(); buildIWhoChips(); buildIAddedBy(); buildExpCcySelect(); buildExpFormCcySelect();
+}
+
+function buildHdrPeople() {
+  document.getElementById('hdrPeople').innerHTML = people().map(p=>`<div class="hpill" style="background:${p.color}" title="${p.name}"></div>`).join('');
+}
+
+async function addPerson() {
+  if (people().length>=4) return;
+  const i=people().length;
+  trip.people.push({id:'p'+Date.now(),name:`Person ${i+1}`,color:PCOLS[i%4]});
+  expenses.forEach(e=>{e.paid.push({orig:0,settle:0});e.shares.push(0);e.included.push(false);});
+  try{await saveTripMeta();}catch(e){setSyncStatus('err');}
+  buildPeopleChips(); rebuildPaidGrid(); rebuildShareGrid(); renderTableHead(); renderTableBody();
+}
+async function removePerson(id) {
+  if (people().length<=2) return;
+  const i=people().findIndex(p=>p.id===id);
+  trip.people.splice(i,1);
+  expenses.forEach(e=>{e.paid.splice(i,1);e.shares.splice(i,1);e.included.splice(i,1);});
+  try{await saveTripMeta();}catch(e){setSyncStatus('err');}
+  buildPeopleChips(); rebuildPaidGrid(); rebuildShareGrid(); renderAll();
+}
+async function renamePerson(id,name) {
+  const p=people().find(p=>p.id===id); if(!p)return;
+  p.name=name;
+  try{await saveTripMeta();}catch(e){setSyncStatus('err');}
+  rebuildPaidGrid(); rebuildShareGrid(); renderTableHead(); buildIWhoChips(); buildIAddedBy();
+}
+
+// ── CURRENCY chips ────────────────────────────────────────────────
+function buildCcyChips() {
+  const wrap = document.getElementById('ccyChips');
+  const sc = settleCcy().code;
+  wrap.innerHTML = ccys().map((c,i)=>`
+    <div class="ccy-chip ${c.settle?'settle':''}">
+      <input type="text" value="${c.code}" maxlength="4" onchange="renameCcy(${i},this.value.toUpperCase())">
+      <span style="color:var(--muted);font-size:10px">=</span>
+      <input class="rateIn" type="text" inputmode="decimal" value="${c.rate}" onchange="setCcyRate(${i},this.value)" onblur="setCcyRate(${i},this.value)">
+      <span style="color:var(--muted);font-size:9px">${sc}</span>
+      <span class="star ${c.settle?'on':''}" onclick="setSettle(${i})">⭐</span>
+      ${ccys().length>1?`<button class="crm" onclick="removeCcy(${i})">×</button>`:''}
+    </div>`).join('');
+  wrap.innerHTML+=`<button class="add-chip" onclick="addCcy()">＋</button>`;
+  buildExpCcySelect(); buildExpFormCcySelect();
+}
+
+async function addCcy()         { ccys().push({code:'EUR',rate:1,settle:false}); try{await saveTripMeta();}catch(e){} buildCcyChips(); }
+async function removeCcy(i)     { if(ccys().length<=1)return; if(ccys()[i].settle&&ccys().length>1)ccys()[i===0?1:0].settle=true; ccys().splice(i,1); try{await saveTripMeta();}catch(e){} buildCcyChips(); renderCcyTotals(); }
+async function renameCcy(i,c)   { ccys()[i].code=c; try{await saveTripMeta();}catch(e){} buildCcyChips(); }
+async function setCcyRate(i,v)  { ccys()[i].rate=parseFloat(v)||1; try{await saveTripMeta();}catch(e){} buildCcyChips(); renderCcyTotals(); renderAll(); }
+async function setSettle(i)     { ccys().forEach((c,j)=>c.settle=j===i); try{await saveTripMeta();}catch(e){} buildCcyChips(); renderCcyTotals(); renderSettlement(); }
+
+// ── CCY select helpers ────────────────────────────────────────────
+function buildExpCcySelect() {
+  const sel=document.getElementById('eCcy'); if(!sel)return;
+  sel.innerHTML=ccys().map(c=>`<option value="${c.code}">${c.code}</option>`).join('');
+  onExpCcyChange();
+}
+function buildExpFormCcySelect() {
+  const sel=document.getElementById('fCcy'); if(!sel)return;
+  sel.innerHTML=ccys().map(c=>`<option value="${c.code}" ${c.settle?'selected':''}>${c.code}</option>`).join('');
+}
+
+// ══ ITINERARY FORM ════════════════════════════════════════════════
+function setType(type) {
+  curType=type;
+  ['transport','activity','stay'].forEach(t=>{
+    document.getElementById('btn-'+t).className='type-btn'+(type===t?' a'+t[0]:'');
+  });
+  document.getElementById('subRow').innerHTML=SUBTYPES[type].map(s=>
+    `<button class="sub-pill ${s.id===curSub?'active':''}" onclick="setSub('${s.id}')">${s.icon} ${s.label}</button>`
+  ).join('');
+  if(!SUBTYPES[type].find(s=>s.id===curSub)){
+    curSub=SUBTYPES[type][0].id;
+    document.querySelector('.sub-pill')?.classList.add('active');
+  }
+  document.getElementById('timeFields').style.display   = type!=='stay'    ?'':'none';
+  document.getElementById('durField').style.display     = type==='activity'?'':'none';
+  document.getElementById('stayFields').style.display   = type==='stay'    ?'':'none';
+  buildSavedLocs();
+}
+function setSub(id){
+  curSub=id;
+  document.querySelectorAll('.sub-pill').forEach(el=>{
+    const s=SUBTYPES[curType].find(s=>s.id===id);
+    el.classList.toggle('active',!!(s&&el.textContent.trim().startsWith(s.icon)));
+  });
+}
+
+function buildIWhoChips() {
+  document.getElementById('iWhoChips').innerHTML=people().map(p=>`
+    <button class="chip ${iWhoSel.includes(p.id)?'on':''}"
+            style="${iWhoSel.includes(p.id)?`background:${p.color};border-color:${p.color}`:`border-color:${p.color}40`}"
+            onclick="toggleIWho('${p.id}')">${p.name}</button>`).join('');
+}
+function toggleIWho(id){ iWhoSel=iWhoSel.includes(id)?iWhoSel.filter(x=>x!==id):[...iWhoSel,id]; buildIWhoChips(); }
+function buildIAddedBy() {
+  document.getElementById('iAddedBy').innerHTML=people().map(p=>`<option value="${p.name}">${p.name}</option>`).join('');
+}
+
+// ── Inline expense ────────────────────────────────────────────────
+function toggleExpSection() {
+  expSectionOn=!expSectionOn;
+  document.getElementById('expToggle').classList.toggle('on',expSectionOn);
+  document.getElementById('expTick').textContent=expSectionOn?'✓':'';
+  document.getElementById('expSection').classList.toggle('on',expSectionOn);
+  if(expSectionOn) { buildExpCcySelect(); buildExpPaidGrid(); buildExpShareGrid(); }
+}
+
+function onExpCcyChange() { buildExpPaidGrid(); recalcExpShareGrid(); }
+
+function buildExpPaidGrid() {
+  const ccy=document.getElementById('eCcy')?.value||settleCcy().code;
+  const sc=settleCcy();
+  document.getElementById('ePaidGrid').innerHTML=people().map((p,i)=>`
+    <div class="paid-row">
+      <span class="paid-name"><span style="background:${p.color};width:6px;height:6px;border-radius:50%;display:inline-block"></span> ${p.name}</span>
+      <input type="text" inputmode="decimal" id="ep${i}" placeholder="0.00" oninput="onExpPaidChange()">
+      <span class="paid-hint" id="eph${i}"></span>
+    </div>`).join('');
+}
+function onExpPaidChange() {
+  expFormState.overrides=people().map(()=>null);
+  const ccy=document.getElementById('eCcy')?.value||settleCcy().code;
+  const rate=settleRate(ccy);
+  const sc=settleCcy();
+  people().forEach((_,i)=>{
+    const v=parseFloat(document.getElementById(`ep${i}`)?.value)||0;
+    const el=document.getElementById(`eph${i}`);
+    if(el) el.textContent=(v&&ccy!==sc.code)?`≈${sc.code} ${(v*rate).toFixed(2)}`:'';
+  });
+  recalcExpShareGrid();
+}
+
+function getExpTotal() {
+  const ccy=document.getElementById('eCcy')?.value||settleCcy().code;
+  const rate=settleRate(ccy);
+  return people().reduce((s,_,i)=>s+(parseFloat(document.getElementById(`ep${i}`)?.value)||0)*rate,0);
+}
+
+function buildExpShareGrid() {
+  expFormState={included:people().map(()=>true),overrides:people().map(()=>null)};
+  const sc=settleCcy();
+  document.getElementById('eShareGrid').innerHTML=people().map((p,i)=>`
+    <div class="share-row">
+      <label class="chip-toggle">
+        <input type="checkbox" id="ei${i}" checked onchange="onExpIncl(${i})">
+        <span class="chip-face" style="background:${p.color};border-color:${p.color};color:#fff">
+          <span style="background:rgba(255,255,255,.5);width:5px;height:5px;border-radius:50%;display:inline-block"></span> ${p.name}
+        </span>
+      </label>
+      <div class="share-amt">
+        <span class="share-sym">${sc.code}</span>
+        <input type="text" inputmode="decimal" id="es${i}" placeholder="auto" oninput="onExpShareIn(${i})">
+      </div>
+    </div>`).join('');
+}
+function onExpIncl(i){ expFormState.included[i]=document.getElementById(`ei${i}`).checked; expFormState.overrides[i]=null; recalcExpShareGrid(); }
+function onExpShareIn(i){ const v=document.getElementById(`es${i}`).value; expFormState.overrides[i]=v===''?null:parseFloat(v); recalcExpShareGrid(); }
+
+function recalcExpShareGrid() {
+  const total=getExpTotal();
+  const incl=people().map((_,i)=>i).filter(i=>expFormState.included[i]);
+  if(!incl.length){setExpShareStatus('','');return;}
+  let ms=0,mc=0;
+  incl.forEach(i=>{if(expFormState.overrides[i]!==null){ms+=expFormState.overrides[i];mc++;}});
+  const ac=incl.length-mc, as=ac>0?Math.max(0,(total-ms)/ac):0;
+  incl.forEach(i=>{const el=document.getElementById(`es${i}`);if(el&&expFormState.overrides[i]===null)el.placeholder=total>0?as.toFixed(2):'auto';});
+  const diff=total-(ms+as*ac), abs=Math.abs(diff), sc=settleCcy().code;
+  if(!total)setExpShareStatus('','');
+  else if(abs<0.02)setExpShareStatus(`✓ ${sc} ${total.toFixed(2)}`,'ss-ok');
+  else if(diff<0)  setExpShareStatus(`Over by ${sc} ${abs.toFixed(2)}`,'ss-over');
+  else             setExpShareStatus(`${sc} ${diff.toFixed(2)} auto-split`,'ss-auto');
+}
+function setExpShareStatus(txt,cls){const el=document.getElementById('eShareStatus');el.textContent=txt;el.className='share-status'+(cls?' '+cls:'');}
+
+function resolveExpShares(total,fmtState) {
+  const incl=people().map((_,i)=>i).filter(i=>fmtState.included[i]);
+  let ms=0,mc=0;
+  incl.forEach(i=>{if(fmtState.overrides[i]!==null){ms+=fmtState.overrides[i];mc++;}});
+  const ac=incl.length-mc, as=ac>0?Math.max(0,(total-ms)/ac):0;
+  return people().map((_,i)=>{
+    if(!fmtState.included[i])return 0;
+    if(fmtState.overrides[i]!==null)return +fmtState.overrides[i].toFixed(2);
+    return +as.toFixed(2);
+  });
+}
+
+function resetItemForm() {
+  editItemId=null; expSectionOn=false;
+  document.getElementById('itemFormTitle').textContent='Add Item';
+  document.getElementById('itemSubmitLabel').textContent='Add to Itinerary';
+  document.getElementById('itemCancelBtn').style.display='none';
+  document.getElementById('expToggle').classList.remove('on');
+  document.getElementById('expTick').textContent='';
+  document.getElementById('expSection').classList.remove('on');
+  ['iTitle','iLocation','iBooking','iNotes','iStart','iEnd'].forEach(id=>{ const el=document.getElementById(id); if(el)el.value=''; });
+  document.getElementById('iStatus').value='planned';
+  document.getElementById('iDate').value=new Date().toISOString().split('T')[0];
+  iWhoSel=[...people().map(p=>p.id)];
+  buildIWhoChips(); setType('transport');
+}
+
+function cancelItemEdit() { resetItemForm(); switchTab('itinerary'); }
+
+async function submitItem() {
+  const title=document.getElementById('iTitle').value.trim();
+  if(!title){toast('Add a title!');return;}
+
+  const item = {
+    id:editItemId||null, type:curType, subtype:curSub, title,
+    date:   document.getElementById('iDate').value,
+    start:  document.getElementById('iStart').value||document.getElementById('iCheckin')?.value||'',
+    end:    document.getElementById('iEnd').value  ||document.getElementById('iCheckout')?.value||'',
+    duration:document.getElementById('iDur')?.value||'',
+    location:document.getElementById('iLocation').value,
+    bookingUrl:document.getElementById('iBooking').value,
+    notes:  document.getElementById('iNotes').value,
+    status: document.getElementById('iStatus').value,
+    who:    [...iWhoSel],
+    addedBy:document.getElementById('iAddedBy').value,
+    expenseId:null,
+  };
+
+  // Handle inline expense
+  let expenseId = null;
+  if (expSectionOn) {
+    const ccy=document.getElementById('eCcy')?.value||settleCcy().code;
+    const rate=settleRate(ccy);
+    const paid=people().map((_,i)=>{const v=parseFloat(document.getElementById(`ep${i}`)?.value)||0;return{orig:v,settle:+(v*rate).toFixed(2)};});
+    const totalSettle=+(paid.reduce((s,p)=>s+p.settle,0)).toFixed(2);
+    if(totalSettle>0){
+      const shares=resolveExpShares(totalSettle,expFormState);
+      const inclCnt=expFormState.included.filter(Boolean).length||1;
+      const evenSh=+(totalSettle/inclCnt).toFixed(2);
+      const isEven=expFormState.included.every((_,i)=>!expFormState.included[i]||Math.abs(shares[i]-evenSh)<0.02);
+      const exp={id:null,desc:title,cat:'Other',date:item.date,ccy,rate,paid,totalSettle,shares,isEven,included:[...expFormState.included],skip:false};
+      try{
+        await upsertExpense(exp);
+        expenses.push(exp); sortExpenses();
+        expenseId=exp.id;
+      }catch(e){toast('Expense save error: '+e.message);setSyncStatus('err');return;}
+    }
+  }
+
+  item.expenseId=expenseId;
+  try {
+    await upsertItem(item, expenseId);
+    if(editItemId){ const i=itinerary.findIndex(x=>x.id===editItemId); if(i>=0)itinerary[i]=item; toast('Updated!'); }
+    else { itinerary.push(item); toast('Added!'); }
+    resetItemForm(); renderTimeline(); renderAll(); switchTab('itinerary');
+  } catch(e){ toast('Save error: '+e.message); setSyncStatus('err'); }
+}
+
+function editItem(id) {
+  const e=itinerary.find(x=>x.id===id); if(!e) return;
+  editItemId=id;
+  document.getElementById('itemFormTitle').textContent='Edit Item';
+  document.getElementById('itemSubmitLabel').textContent='Save Changes';
+  document.getElementById('itemCancelBtn').style.display='';
+  setType(e.type); curSub=e.subtype;
+  document.querySelectorAll('.sub-pill').forEach(el=>{
+    const s=SUBTYPES[e.type].find(s=>s.id===e.subtype);
+    el.classList.toggle('active',!!(s&&el.textContent.trim().startsWith(s.icon)));
+  });
+  document.getElementById('iTitle').value    =e.title;
+  document.getElementById('iDate').value     =e.date;
+  document.getElementById('iStatus').value   =e.status;
+  document.getElementById('iLocation').value =e.location||'';
+  document.getElementById('iBooking').value  =e.bookingUrl||'';
+  document.getElementById('iNotes').value    =e.notes||'';
+  document.getElementById('iAddedBy').value  =e.addedBy||'';
+  if(e.type==='stay'){
+    document.getElementById('iCheckin').value =e.start||'15:00';
+    document.getElementById('iCheckout').value=e.end||'11:00';
+  } else {
+    document.getElementById('iStart').value=e.start||'';
+    document.getElementById('iEnd').value  =e.end||'';
+  }
+  iWhoSel=[...(e.who||[])]; buildIWhoChips();
+  switchTab('add-item');
+}
+
+async function deleteItem(id) {
+  if(!confirm('Delete this item?')) return;
+  try{
+    await sb(`itinerary_items?id=eq.${id}`,'DELETE');
+    itinerary=itinerary.filter(x=>x.id!==id);
+    if(editItemId===id) resetItemForm();
+    renderTimeline(); toast('Deleted');
+  }catch(e){toast('Error: '+e.message);setSyncStatus('err');}
+}
+
+// ── Location search ───────────────────────────────────────────────
+function buildSavedLocs() {
+  const area=document.getElementById('savedLocsArea'); if(!area)return;
+  if(!savedPlaces.length){area.innerHTML='';return;}
+  area.innerHTML=`<div class="saved-locs">${savedPlaces.map(p=>`
+    <button class="sloc" onclick="pickLoc('${(p.name+', '+(p.address||'')).replace(/'/g,"\\'")}')">📍 ${p.name}</button>`).join('')}</div>`;
+}
+function pickLoc(v){document.getElementById('iLocation').value=v;clearLocRes();}
+
+let locAbort=null;
+function onLocInput() {
+  clearTimeout(locTimer);
+  const q=document.getElementById('iLocation').value.trim();
+  if(q.length<3){clearLocRes();return;}
+  locTimer=setTimeout(async()=>{
+    if(locAbort)locAbort.abort(); locAbort=new AbortController();
+    try{
+      const res=await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(q)}&format=json&limit=5`,{headers:{'Accept-Language':'en'},signal:locAbort.signal});
+      const data=await res.json();
+      const div=document.getElementById('locResults');
+      if(!data.length){div.style.display='none';return;}
+      div.innerHTML=data.map(r=>{
+        const parts=r.display_name.split(',');
+        const name=parts[0].trim(), sub=parts.slice(1,3).join(',').trim();
+        return `<div class="loc-res" onclick="pickLoc('${(name+', '+sub).replace(/'/g,"\\'")}')">
+          <div class="ln">${name}</div><div class="ls">${sub}</div></div>`;
+      }).join('');
+      div.style.display='block';
+    }catch(e){if(e.name!=='AbortError')console.warn(e);}
+  },400);
+}
+function clearLocRes(){document.getElementById('locResults').style.display='none';}
+
+// ── Filter ────────────────────────────────────────────────────────
+function setIFilter(f){
+  iFilter=f;
+  document.querySelectorAll('.fbtn').forEach(btn=>btn.classList.toggle('active',btn.dataset.f===f));
+  renderTimeline();
+}
+
+// ── Render timeline ───────────────────────────────────────────────
+function renderTimeline() {
+  const tl=document.getElementById('timeline');
+  const filtered=iFilter==='all'?itinerary:itinerary.filter(x=>x.type===iFilter);
+  document.getElementById('icount').textContent=`${filtered.length} item${filtered.length!==1?'s':''}`;
+  if(!filtered.length){
+    tl.innerHTML=`<div class="empty-tl"><div class="ei">🗺️</div><h3>Nothing yet</h3><p>Tap + to add your first item.</p></div>`;
+    return;
+  }
+  const sorted=[...filtered].sort((a,b)=>{
+    if(!a.date&&!b.date)return 0;if(!a.date)return 1;if(!b.date)return -1;
+    if(a.date!==b.date)return a.date.localeCompare(b.date);
+    if(!a.start&&!b.start)return 0;if(!a.start)return 1;if(!b.start)return -1;
+    return a.start.localeCompare(b.start);
+  });
+  const groups={}, undated=[];
+  sorted.forEach(x=>{if(!x.date){undated.push(x);return;} if(!groups[x.date])groups[x.date]=[]; groups[x.date].push(x);});
+  let html='';
+  Object.entries(groups).forEach(([date,items])=>{
+    const d=new Date(date+'T12:00:00');
+    html+=`<div class="day-group">
+      <div class="day-hdr">
+        <div class="day-date">${d.toLocaleDateString('en-GB',{day:'numeric',month:'short'})}</div>
+        <div class="day-dow">${d.toLocaleDateString('en-GB',{weekday:'long'})}</div>
+        <div class="day-n">${items.length}</div>
+      </div>${items.map(renderICard).join('')}</div>`;
+  });
+  if(undated.length) html+=`<div class="day-group"><div class="undated-hdr">No date</div>${undated.map(renderICard).join('')}</div>`;
+  tl.innerHTML=html;
+}
+
+function renderICard(item) {
+  const icon=TICONS[item.subtype]||'📍';
+  const t=item.start?(item.end?`${item.start}–${item.end}`:item.start):'';
+  const wd=(item.who||[]).map(id=>{const p=people().find(x=>x.id===id);return p?`<span class="wdot" style="background:${p.color}"></span>`:''}).join('');
+  const editing=editItemId===item.id;
+  const expBadge=item.expenseId?`<span class="pill-tag" style="background:rgba(16,185,129,.12);color:#10B981">💰</span>`:'';
+  return `<div class="icard ${item.type}${editing?' editing':''}" onclick="editItem('${item.id}')">
+    <div class="iico ${item.type}">${icon}</div>
+    <div class="ibody">
+      <div class="itop">
+        <div class="ititle">${item.title}${expBadge}</div>
+        <span class="sbadge ${item.status}">${item.status}</span>
+      </div>
+      <div class="imeta">
+        ${t?`<span class="mchip">🕐 ${t}</span>`:''}
+        ${item.duration?`<span class="mchip">⏱ ${item.duration}</span>`:''}
+        ${item.location?`<span class="mchip">📍 ${item.location}</span>`:''}
+        ${item.bookingUrl?`<a href="${item.bookingUrl}" target="_blank" onclick="event.stopPropagation()" class="mchip" style="color:#10B981">🔗</a>`:''}
+        ${item.addedBy?`<span class="mchip">👤 ${item.addedBy}</span>`:''}
+        ${wd?`<div class="wdots">${wd}</div>`:''}
+      </div>
+      ${item.notes?`<div class="inotes">${item.notes}</div>`:''}
+    </div>
+    <div class="iactions">
+      <button class="iact del" onclick="event.stopPropagation();deleteItem('${item.id}')">✕</button>
+    </div>
+  </div>`;
+}
+
+// ══ EXPENSE FORM ══════════════════════════════════════════════════
+function getExpFormCcy(){ return document.getElementById('fCcy')?.value||settleCcy().code; }
+function getExpFormRate(){ return settleRate(getExpFormCcy()); }
+
+function rebuildPaidGrid() {
+  const ccy=getExpFormCcy();
+  document.getElementById('paidGrid').innerHTML=
+    `<div class="field" style="margin-bottom:10px"><select id="fCcy" onchange="onExpFormCcyChange()">${ccys().map(c=>`<option value="${c.code}" ${c.settle?'selected':''}>${c.code}</option>`).join('')}</select></div>`+
+    people().map((p,i)=>`
+    <div class="paid-row">
+      <span class="paid-name"><span style="background:${p.color};width:6px;height:6px;border-radius:50%;display:inline-block"></span> ${p.name}</span>
+      <input type="text" inputmode="decimal" id="fp${i}" placeholder="0.00" oninput="onExpFormPaid()">
+      <span class="paid-hint" id="fph${i}"></span>
+    </div>`).join('');
+}
+function onExpFormCcyChange() { updateExpFormHints(); recalcExpFormShares(); }
+function onExpFormPaid() {
+  expFormState.overrides=people().map(()=>null);
+  updateExpFormHints(); recalcExpFormShares();
+}
+function updateExpFormHints(){
+  const ccy=getExpFormCcy(),rate=getExpFormRate(),sc=settleCcy();
+  people().forEach((_,i)=>{
+    const v=parseFloat(document.getElementById(`fp${i}`)?.value)||0;
+    const el=document.getElementById(`fph${i}`);
+    if(el)el.textContent=(v&&ccy!==sc.code)?`≈${sc.code} ${(v*rate).toFixed(2)}`:'';
+  });
+}
+function getExpFormTotal(){
+  const rate=getExpFormRate();
+  return people().reduce((s,_,i)=>s+(parseFloat(document.getElementById(`fp${i}`)?.value)||0)*rate,0);
+}
+
+function rebuildShareGrid() {
+  const sc=settleCcy();
+  document.getElementById('shareGrid').innerHTML=people().map((p,i)=>{
+    const on=expFormState.included[i]!==false;
+    const ov=expFormState.overrides[i];
+    return `<div class="share-row">
+      <label class="chip-toggle">
+        <input type="checkbox" id="fi${i}" ${on?'checked':''} onchange="onExpFormIncl(${i})">
+        <span class="chip-face" style="${on?`background:${p.color};border-color:${p.color};color:#fff`:''}">
+          <span style="background:${on?'rgba(255,255,255,.5)':p.color};width:5px;height:5px;border-radius:50%;display:inline-block"></span> ${p.name}
+        </span>
+      </label>
+      <div class="share-amt">
+        <span class="share-sym">${sc.code}</span>
+        <input type="text" inputmode="decimal" id="fs${i}"
+               value="${ov!==null?ov:''}" placeholder="auto"
+               ${!on?'disabled':''} oninput="onExpFormShareIn(${i})">
+      </div>
+    </div>`;
+  }).join('');
+  recalcExpFormShares();
+}
+function onExpFormIncl(i){expFormState.included[i]=document.getElementById(`fi${i}`).checked;expFormState.overrides[i]=null;rebuildShareGrid();}
+function onExpFormShareIn(i){const v=document.getElementById(`fs${i}`).value;expFormState.overrides[i]=v===''?null:parseFloat(v);recalcExpFormShares();}
+function recalcExpFormShares(){
+  const total=getExpFormTotal(),incl=people().map((_,i)=>i).filter(i=>expFormState.included[i]!==false);
+  if(!incl.length){setShareStatus('','');return;}
+  let ms=0,mc=0;
+  incl.forEach(i=>{if(expFormState.overrides[i]!==null){ms+=expFormState.overrides[i];mc++;}});
+  const ac=incl.length-mc,as=ac>0?Math.max(0,(total-ms)/ac):0;
+  incl.forEach(i=>{const el=document.getElementById(`fs${i}`);if(el&&expFormState.overrides[i]===null)el.placeholder=total>0?as.toFixed(2):'auto';});
+  const diff=total-(ms+as*ac),abs=Math.abs(diff),sc=settleCcy().code;
+  if(!total)setShareStatus('','');
+  else if(abs<0.02)setShareStatus(`✓ ${sc} ${total.toFixed(2)}`,'ss-ok');
+  else if(diff<0)  setShareStatus(`Over by ${sc} ${abs.toFixed(2)}`,'ss-over');
+  else             setShareStatus(`${sc} ${diff.toFixed(2)} auto-split`,'ss-auto');
+}
+function setShareStatus(txt,cls){const el=document.getElementById('shareStatus');el.textContent=txt;el.className='share-status'+(cls?' '+cls:'');}
+
+function resetExpForm() {
+  editExpId=null; expFormState={included:people().map(()=>true),overrides:people().map(()=>null)};
+  document.getElementById('expFormTitle').textContent='Add Expense';
+  document.getElementById('expSubmitLabel').textContent='Add Expense';
+  document.getElementById('expCancelBtn').style.display='none';
+  document.getElementById('fDesc').value='';
+  document.getElementById('fCat').value='Food';
+  document.getElementById('fSkip').value='';
+  document.getElementById('fDate').value=new Date().toISOString().split('T')[0];
+  rebuildPaidGrid(); rebuildShareGrid();
+}
+function cancelExpEdit(){editExpId=null;resetExpForm();}
+
+async function submitExpense() {
+  const desc=document.getElementById('fDesc').value.trim();
+  const cat =document.getElementById('fCat').value;
+  const date=document.getElementById('fDate').value;
+  const skip=document.getElementById('fSkip').value==='skip';
+  const ccy =getExpFormCcy(), rate=getExpFormRate();
+  if(!desc){toast('Add a description!');return;}
+  const paid=people().map((_,i)=>{const v=parseFloat(document.getElementById(`fp${i}`)?.value)||0;return{orig:v,settle:+(v*rate).toFixed(2)};});
+  const totalSettle=+(paid.reduce((s,p)=>s+p.settle,0)).toFixed(2);
+  if(!skip&&totalSettle===0){toast('Enter at least one amount, or skip');return;}
+  const shares=resolveExpShares(totalSettle,expFormState);
+  const inclCnt=expFormState.included.filter(Boolean).length||1;
+  const evenSh=+(totalSettle/inclCnt).toFixed(2);
+  const isEven=expFormState.included.every((_,i)=>!expFormState.included[i]||Math.abs(shares[i]-evenSh)<0.02);
+  const entry={id:editExpId||null,desc,cat,date,ccy,rate,paid,totalSettle,shares,isEven,included:[...expFormState.included],skip};
+  try{
+    await upsertExpense(entry);
+    if(editExpId){const i=expenses.findIndex(e=>e.id===editExpId);if(i>=0)expenses[i]=entry;toast('Updated!');}
+    else{expenses.push(entry);toast('Added!');}
+    sortExpenses(); resetExpForm(); renderAll();
+  }catch(e){toast('Error: '+e.message);setSyncStatus('err');}
+}
+
+function editExpense(id) {
+  const e=expenses.find(x=>x.id===id);if(!e)return;
+  editExpId=id;
+  document.getElementById('expFormTitle').textContent='Edit Expense';
+  document.getElementById('expSubmitLabel').textContent='Save Changes';
+  document.getElementById('expCancelBtn').style.display='';
+  document.getElementById('fDesc').value=e.desc;
+  document.getElementById('fCat').value=e.cat||'Other';
+  document.getElementById('fDate').value=e.date;
+  document.getElementById('fSkip').value=e.skip?'skip':'';
+  expFormState={included:[...e.included],overrides:e.shares.map((s,i)=>e.included[i]&&!e.isEven?s:null)};
+  rebuildPaidGrid();
+  const sel=document.getElementById('fCcy');if(sel)sel.value=e.ccy;
+  rebuildShareGrid();
+  e.paid.forEach((p,i)=>{const el=document.getElementById(`fp${i}`);if(el)el.value=p.orig||'';});
+  updateExpFormHints(); recalcExpFormShares();
+  document.getElementById('expFormCard').scrollIntoView({behavior:'smooth',block:'start'});
+}
+
+async function deleteExpense(id) {
+  if(!confirm('Delete?'))return;
+  try{
+    await sb(`expenses?id=eq.${id}`,'DELETE');
+    expenses=expenses.filter(e=>e.id!==id);
+    if(editExpId===id)resetExpForm();
+    renderAll(); toast('Deleted');
+  }catch(e){toast('Error: '+e.message);setSyncStatus('err');}
+}
+
+function sortExpenses(){expenses.sort((a,b)=>{if(!a.date&&!b.date)return 0;if(!a.date)return 1;if(!b.date)return -1;return a.date.localeCompare(b.date);});}
+
+// ── Render expenses ────────────────────────────────────────────────
+function renderAll(){renderTableHead();renderTableBody();renderCcyTotals();}
+
+function renderTableHead(){
+  const pc=people().map(p=>`<th class="hp">${p.name}</th>`).join('');
+  const sc=people().map(p=>`<th class="hs">${p.name} owes</th>`).join('');
+  document.getElementById('tableHead').innerHTML=`<th>Date</th><th>Description</th><th>Cat</th><th class="hp">CCY</th>${pc}${sc}<th></th>`;
+}
+
+function renderTableBody(){
+  document.getElementById('expCount').textContent=`${expenses.length}`;
+  const tbody=document.getElementById('tableBody');
+  if(!expenses.length){tbody.innerHTML=`<tr><td colspan="20"><div class="empty-state">No expenses yet</div></td></tr>`;return;}
+  const sc=settleCcy();
+  const ccyC={GBP:'#7C3AED',NOK:'#0369A1',EUR:'#065F46',USD:'#1D4ED8'};
+  tbody.innerHTML=expenses.map((e,idx)=>{
+    const editing=editExpId===e.id;
+    const pc=e.paid.map((p,pi)=>{
+      if(!p.orig)return`<td class="cp mono" style="color:var(--border)">—</td>`;
+      const hint=e.ccy!==sc.code?`<br><span style="font-size:9px;color:var(--muted)">${e.ccy} ${p.orig.toFixed(2)}</span>`:'';
+      return`<td class="cp mono" style="color:${people()[pi]?.color};font-weight:600">${sc.code} ${p.settle.toFixed(2)}${hint}</td>`;
+    }).join('');
+    const shc=e.shares.map((s,pi)=>{
+      if(!e.included[pi])return`<td class="cs mono" style="color:var(--border)">—</td>`;
+      return`<td class="cs mono" style="color:#34D399">${sc.code} ${s.toFixed(2)}</td>`;
+    }).join('');
+    const tags=(e.skip?`<span class="skip-badge">skip</span>`:'')+((!e.isEven&&!e.skip)?`<span class="custom-badge">custom</span>`:'');
+    // Check if linked from itinerary
+    const linked=itinerary.some(it=>it.expenseId===e.id);
+    const linkedTag=linked?`<span class="linked-badge">itinerary</span>`:'';
+    return`<tr class="${editing?'isedit':''}">
+      <td class="mono" style="color:var(--muted);font-size:10px">${e.date||'—'}</td>
+      <td style="font-weight:500;max-width:130px;font-size:12px">${e.desc}${tags}${linkedTag}</td>
+      <td><span style="font-size:10px;color:${CAT_COLORS[e.cat]||'#6B6B72'};font-weight:600">${e.cat}</span></td>
+      <td class="cp"><span class="ccy-badge" style="background:${ccyC[e.ccy]||'#6B6B72'}20;color:${ccyC[e.ccy]||'#6B6B72'}">${e.ccy}</span></td>
+      ${pc}${shc}
+      <td><div style="display:flex;gap:3px">
+        <button class="ibt" onclick="editExpense('${e.id}')">✏️</button>
+        <button class="ibt del" onclick="deleteExpense('${e.id}')">✕</button>
+      </div></td>
+    </tr>`;
+  }).join('');
+}
+
+function renderCcyTotals(){
+  const sc=settleCcy();
+  const active=expenses.filter(e=>!e.skip);
+  const grand=active.reduce((s,e)=>s+e.totalSettle,0);
+  const buckets={};
+  active.forEach(e=>{if(!buckets[e.ccy])buckets[e.ccy]={raw:0,settle:0};buckets[e.ccy].raw+=e.paid.reduce((s,p)=>s+p.orig,0);buckets[e.ccy].settle+=e.totalSettle;});
+  const ccyC={GBP:'#7C3AED',NOK:'#0369A1',EUR:'#065F46',USD:'#1D4ED8'};
+  document.getElementById('ccyTotals').innerHTML=Object.entries(buckets).map(([ccy,b])=>`
+    <div class="ccy-card">
+      <div class="ccy-label" style="color:${ccyC[ccy]||'#6B6B72'}">${ccy}</div>
+      <div class="ccy-total" style="color:${ccyC[ccy]||'#6B6B72'}">${ccy} ${b.raw.toFixed(2)}</div>
+      <div class="ccy-sub">→ ${sc.code} ${b.settle.toFixed(2)}</div>
+    </div>`).join('')+`
+    <div class="ccy-card">
+      <div class="ccy-label">Total (${sc.code})</div>
+      <div class="ccy-total" style="color:#10B981">${sc.code} ${grand.toFixed(2)}</div>
+      <div class="ccy-sub">${active.length} expenses</div>
+    </div>`;
+}
+
+// ══ SETTLEMENT ════════════════════════════════════════════════════
+function renderSettlement(){
+  const sc=settleCcy();
+  const active=expenses.filter(e=>!e.skip);
+  const pp=people().map((p,i)=>{
+    const paid=active.reduce((s,e)=>s+e.paid[i].settle,0);
+    const share=active.reduce((s,e)=>s+(e.shares[i]||0),0);
+    return{name:p.name,color:p.color,paid:+paid.toFixed(2),share:+share.toFixed(2),balance:+(paid-share).toFixed(2)};
+  });
+  const bs=pp.map(p=>({name:p.name,b:p.balance}));
+  const transfers=[];
+  for(let it=0;it<30;it++){
+    const pay=bs.filter(x=>x.b<-0.01).sort((a,b)=>a.b-b.b);
+    const rec=bs.filter(x=>x.b>0.01).sort((a,b)=>b.b-a.b);
+    if(!pay.length||!rec.length)break;
+    const amt=Math.min(-pay[0].b,rec[0].b);
+    transfers.push({from:pay[0].name,to:rec[0].name,amt:+amt.toFixed(2)});
+    pay[0].b=+(pay[0].b+amt).toFixed(2);rec[0].b=+(rec[0].b-amt).toFixed(2);
+  }
+  const tLines=transfers.length
+    ?transfers.map(t=>`<div class="tline"><span>${t.from}</span><span class="tarrow">→</span><span>${t.to}</span><span class="tamt">${sc.code} ${t.amt.toFixed(2)}</span></div>`).join('')
+    :`<div class="no-transfer">✓ All settled</div>`;
+  document.getElementById('transfersBox').innerHTML=`<h3>How to settle up</h3>${tLines}`;
+  document.getElementById('settleGrid').innerHTML=pp.map((p,i)=>{
+    const bc=p.balance>0.01?'bp-pos':p.balance<-0.01?'bp-neg':'bp-zero';
+    const bt=p.balance>0.01?`Gets back ${sc.code} ${p.balance.toFixed(2)}`:p.balance<-0.01?`Owes ${sc.code} ${Math.abs(p.balance).toFixed(2)}`:'✓ Settled';
+    const items=active.map(e=>{
+      const paid=e.paid[i].settle,share=e.shares[i]||0;
+      if(!paid&&!share)return'';
+      return`<div class="drow"><span>${e.desc}</span><span>paid ${e.paid[i].orig>0?e.ccy+' '+e.paid[i].orig.toFixed(2):'—'} / owes ${sc.code} ${share.toFixed(2)}</span></div>`;
+    }).filter(Boolean).join('');
+    return`<div class="pcard" style="border-color:${p.color}30">
+      <div style="position:absolute;top:0;left:0;right:0;height:2px;background:${p.color}"></div>
+      <div class="pc-name"><span style="background:${p.color};width:8px;height:8px;border-radius:50%;display:inline-block"></span>${p.name}</div>
+      <div class="pc-row"><span class="pc-lbl">Paid out</span><span class="pc-val">${sc.code} ${p.paid.toFixed(2)}</span></div>
+      <div class="pc-row"><span class="pc-lbl">Fair share</span><span class="pc-val">${sc.code} ${p.share.toFixed(2)}</span></div>
+      <div class="bpill ${bc}">${bt}</div>
+      ${items?`<button class="expand-btn" onclick="toggleDetail(this)">▶ Show itemized</button><div class="detail-panel">${items}</div>`:''}
+    </div>`;
+  }).join('');
+}
+function toggleDetail(btn){const open=btn.nextElementSibling.classList.toggle('open');btn.textContent=(open?'▼ Hide':'▶ Show')+' itemized';}
+
+// ══ ANALYSIS ══════════════════════════════════════════════════════
+function renderAnalysis(){
+  const sc=settleCcy();
+  const active=expenses.filter(e=>!e.skip);
+  const grand=active.reduce((s,e)=>s+e.totalSettle,0);
+  const byCcy={};active.forEach(e=>{byCcy[e.ccy]=(byCcy[e.ccy]||0)+e.totalSettle;});
+  const byPerson=people().map((p,i)=>({name:p.name,color:p.color,paid:active.reduce((s,e)=>s+e.paid[i].settle,0),share:active.reduce((s,e)=>s+(e.shares[i]||0),0)}));
+  const maxPaid=Math.max(...byPerson.map(p=>p.paid),1);
+  const byDay={};active.forEach(e=>{if(e.date)byDay[e.date]=(byDay[e.date]||0)+e.totalSettle;});
+  const dayEnt=Object.entries(byDay).sort(([a],[b])=>a.localeCompare(b));
+  const maxDay=Math.max(...dayEnt.map(([,v])=>v),1);
+  const dl=d=>{try{return new Date(d+'T12:00:00').toLocaleDateString('en-GB',{day:'numeric',month:'short'});}catch{return d;}};
+  const ccyC={GBP:'#7C3AED',NOK:'#0369A1',EUR:'#065F46',USD:'#1D4ED8'};
+  function bars(ents,maxV,getC){return ents.map(([lbl,val])=>`<div class="bar-row"><div class="bar-lbl">${lbl}</div><div class="bar-track"><div class="bar-fill" style="width:${val/maxV*100}%;background:${getC(lbl)}"></div></div><div class="bar-val">${sc.code} ${val.toFixed(0)}</div></div>`).join('');}
+  document.getElementById('analysisGrid').innerHTML=`
+    <div class="acard"><h3>By Currency</h3>${bars(Object.entries(byCcy).sort(([,a],[,b])=>b-a),Math.max(...Object.values(byCcy),1),l=>ccyC[l]||'#6B6B72')}</div>
+    <div class="acard"><h3>Who Paid</h3>${byPerson.map(p=>`<div class="bar-row"><div class="bar-lbl" style="color:${p.color};font-weight:600">${p.name}</div><div class="bar-track"><div class="bar-fill" style="width:${p.paid/maxPaid*100}%;background:${p.color}"></div></div><div class="bar-val">${sc.code} ${p.paid.toFixed(0)}</div></div>`).join('')}</div>
+    <div class="acard"><h3>By Day</h3>${dayEnt.length?bars(dayEnt.map(([d,v])=>[dl(d),v]),maxDay,()=>'#3B82F6'):'<p style="color:var(--muted);font-size:12px">No dates yet</p>'}</div>
+    <div class="acard"><h3>Stats</h3><div class="stat-grid">
+      <div class="stat-item"><div class="stat-lbl">Total</div><div class="stat-val">${sc.code} ${grand.toFixed(2)}</div></div>
+      <div class="stat-item"><div class="stat-lbl">Per person</div><div class="stat-val">${sc.code} ${people().length?(grand/people().length).toFixed(2):'—'}</div></div>
+      <div class="stat-item"><div class="stat-lbl">Expenses</div><div class="stat-val">${active.length}</div></div>
+      <div class="stat-item"><div class="stat-lbl">Days</div><div class="stat-val">${Object.keys(byDay).length}</div></div>
+      <div class="stat-item"><div class="stat-lbl">Itinerary</div><div class="stat-val">${itinerary.length}</div></div>
+      <div class="stat-item"><div class="stat-lbl">Settle in</div><div class="stat-val">${sc.code}</div></div>
+    </div></div>`;
+}
+
+// ── TOAST ─────────────────────────────────────────────────────────
+function toast(msg){const el=document.getElementById('toast');el.textContent=msg;el.classList.add('show');setTimeout(()=>el.classList.remove('show'),2200);}
+
+// ── BOOT ──────────────────────────────────────────────────────────
+window.onload = async () => {
+  document.getElementById('fDate').value = new Date().toISOString().split('T')[0];
+  document.getElementById('iDate').value = new Date().toISOString().split('T')[0];
+  try {
+    await loadAll();
+    document.getElementById('loadScreen').classList.add('hidden');
+    document.getElementById('hdrTrip').textContent = trip?.name||'Norway 2026';
+    buildPeopleChips(); buildCcyChips();
+    rebuildPaidGrid(); rebuildShareGrid();
+    buildIWhoChips(); buildIAddedBy();
+    setType('transport'); buildSavedLocs();
+    iWhoSel=[...people().map(p=>p.id)];
+    buildIWhoChips();
+    renderTimeline(); renderAll();
+    // Auth check
+    checkAuth();
+    if(!document.getElementById('authScreen').classList.contains('hidden')) {
+      const orig=enterApp;
+      window.enterApp=()=>{orig();};
+    }
+  } catch(e) {
+    console.error(e);
+    document.getElementById('loadScreen').classList.add('hidden');
+    document.getElementById('authScreen').classList.remove('hidden');
+    document.getElementById('authMsg').textContent='⚠ Could not connect — check your Supabase keys.';
+    document.getElementById('authMsg').style.color='#F87171';
+  }
+};
+</script>
+</body>
+</html>
