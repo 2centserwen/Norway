@@ -580,8 +580,11 @@ function enterApp() {
 
 // ── LOAD ──────────────────────────────────────────────────────────
 async function loadAll() {
-  // Load first trip
-  const trips = await sb('trips?select=*&order=created_at.asc&limit=1');
+  // Load the actual trip
+  const TRIP_NAME = 'Norway July 2026';
+  const trips = await sb(
+  `trips?name=eq.${encodeURIComponent(TRIP_NAME)}&select=*`
+  );
   trip = trips?.[0] || null;
 
   if (!trip) {
