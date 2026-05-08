@@ -1397,8 +1397,9 @@ window.onload = async () => {
     iWhoSel=[...people().map(p=>p.id)];
     buildIWhoChips();
     renderTimeline(); renderAll();
-    // Auth check
-    checkAuth();
+    // No auth check for now
+  //  checkAuth();
+    enterApp();
     if(!document.getElementById('authScreen').classList.contains('hidden')) {
       const orig=enterApp;
       window.enterApp=()=>{orig();};
