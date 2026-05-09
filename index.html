@@ -10,6 +10,7 @@
 :root {
   --night:#F4F1EB; --dusk:#FDFBF7; --paper:#F4F1EB; --ink:#0E0E10;
   --dusk2:#EDE9E0; --border:#DDD9CF; --muted:#9A9188;
+  --accent-blue:#2C5F7A; --accent-green:#2A5C45;
   --transport:#3B82F6; --activity:#10B981; --stay:#F59E0B;
   --accent:#2A5C45; --accent-light:#D8F3DC;
   --warn:#C4410C;
@@ -69,7 +70,7 @@ body{font-family:var(--sans);background:var(--night);color:var(--paper);min-heig
 
 /* ── SHARED COMPONENTS ── */
 .card{background:var(--dusk);border:1px solid var(--border);border-radius:var(--r);padding:16px;margin-bottom:14px;}
-.card-title{font-family:var(--sans);font-size:.95rem;margin-bottom:12px;display:flex;align-items:center;justify-content:space-between;}
+.card-title{font-family:var(--sans);font-size:.95rem;margin-bottom:12px;display:flex;align-items:center;justify-content:space-between;color:var(--ink);}
 .field{margin-bottom:11px;}
 .field label{display:block;font-size:10px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-family:var(--sans);margin-bottom:4px;}
 .field input,.field select,.field textarea{width:100%;padding:8px 11px;background:var(--dusk2);border:1px solid var(--border);border-radius:8px;color:var(--paper);font-family:var(--sans);font-size:13px;outline:none;transition:border-color .15s;}
@@ -151,7 +152,7 @@ body{font-family:var(--sans);background:var(--night);color:var(--paper);min-heig
 .ititle{font-family:var(--sans);font-size:1rem;color:var(--ink);flex:1;line-height:1.3;font-weight:600;}
 .sbadge{font-family:var(--sans);font-size:.75rem;padding:1px 7px;border-radius:3px;flex-shrink:0;}
 .sbadge.planned{background:transparent;color:var(--muted);border:1px solid var(--border);}
-.sbadge.booked{background:transparent;color:#2A5C45;border:1px solid #2A5C45;}
+.sbadge.booked{background:transparent;color:var(--accent-green);border:1px solid var(--accent-green);}
 .imeta{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:2px;}
 .mchip{font-family:var(--sans);font-size:.85rem;color:var(--muted);font-style:normal;}
 .iactions{display:flex;gap:4px;flex-shrink:0;padding-top:2px;}
@@ -212,7 +213,7 @@ body{font-family:var(--sans);background:var(--night);color:var(--paper);min-heig
 .share-amt input{font-family:var(--sans);font-size:12px;padding:6px 8px 6px 18px;border:1px solid var(--border);border-radius:7px;width:100%;outline:none;background:var(--dusk2);color:var(--paper);transition:border-color .15s,opacity .15s;}
 .share-amt input:disabled{opacity:.25;cursor:not-allowed;}
 .share-status{font-family:var(--sans);font-size:10px;padding:4px 8px;border-radius:5px;margin-top:6px;}
-.ss-ok{background:#D1FAE5;color:#065F46;}
+.ss-ok{background:#D1FAE5;color:var(--accent-green);}
 .ss-over{background:#FEE2E2;color:#991B1B;}
 .ss-auto{background:#FEF3C7;color:#92400E;}
 
@@ -226,12 +227,12 @@ body{font-family:var(--sans);background:var(--night);color:var(--paper);min-heig
 /* expense table */
 .tbl-wrap{background:var(--dusk);border-radius:var(--r);border:1px solid var(--border);overflow:hidden;margin-bottom:14px;}
 .tbl-hdr{padding:11px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
-.tbl-hdr h3{font-family:var(--sans);font-size:.9rem;}
+.tbl-hdr h3{font-family:var(--sans);font-size:.9rem;color:var(--ink);}
 .pill{font-family:var(--sans);font-size:10px;color:var(--muted);background:var(--dusk2);padding:2px 8px;border-radius:9px;}
 table{width:100%;border-collapse:collapse;font-size:12px;}
 thead th{text-align:left;padding:7px 11px;font-size:9px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);background:var(--dusk2);border-bottom:1px solid var(--border);font-family:var(--sans);white-space:nowrap;}
-thead th.hp{color:#60A5FA;background:rgba(59,130,246,.08);border-bottom:2px solid rgba(59,130,246,.2);}
-thead th.hs{color:#34D399;background:rgba(16,185,129,.08);border-bottom:2px solid rgba(16,185,129,.2);}
+thead th.hp{color:var(--accent-blue);background:rgba(59,130,246,.08);border-bottom:2px solid rgba(59,130,246,.2);}
+thead th.hs{color:var(--accent-green);background:rgba(16,185,129,.08);border-bottom:2px solid rgba(16,185,129,.2);}
 tbody tr{border-bottom:1px solid var(--border);transition:background .1s;}
 tbody tr:last-child td{border-bottom:none;}
 tbody tr.isedit td{background:rgba(245,158,11,.05)!important;}
@@ -242,7 +243,7 @@ td.mono{font-family:var(--sans);font-size:11px;}
 .ccy-badge{display:inline-block;font-family:var(--sans);font-size:9px;padding:1px 5px;border-radius:3px;font-weight:600;}
 .skip-badge{font-size:9px;padding:1px 5px;border-radius:3px;background:var(--dusk2);color:var(--muted);font-family:var(--sans);margin-left:2px;}
 .custom-badge{font-size:9px;padding:1px 5px;border-radius:3px;background:rgba(245,158,11,.15);color:#F59E0B;font-family:var(--sans);margin-left:2px;}
-.linked-badge{font-size:9px;padding:1px 5px;border-radius:3px;background:rgba(16,185,129,.12);color:#10B981;font-family:var(--sans);margin-left:2px;}
+.linked-badge{font-size:9px;padding:1px 5px;border-radius:3px;background:rgba(16,185,129,.12);color:var(--accent-green);font-family:var(--sans);margin-left:2px;}
 .ibt{background:none;border:1px solid transparent;border-radius:5px;padding:2px 6px;font-size:11px;color:var(--muted);cursor:pointer;}
 .ibt:hover,.ibt:active{border-color:var(--border);color:var(--paper);}
 .ibt.del:active{border-color:#EF4444;color:#EF4444;}
@@ -258,7 +259,7 @@ td.mono{font-family:var(--sans);font-size:11px;}
 .pc-lbl{color:var(--muted);}
 .pc-val{font-family:var(--sans);font-size:11px;}
 .bpill{margin-top:9px;padding:6px 10px;border-radius:6px;font-family:var(--sans);font-size:11px;font-weight:500;text-align:center;}
-.bp-pos{background:rgba(16,185,129,.12);color:#10B981;}
+.bp-pos{background:rgba(16,185,129,.12);color:var(--accent-green);}
 .bp-neg{background:rgba(239,68,68,.12);color:#F87171;}
 .bp-zero{background:var(--dusk2);color:var(--muted);}
 .expand-btn{font-size:10px;color:var(--muted);background:none;border:none;cursor:pointer;margin-top:7px;padding:0;font-family:var(--sans);}
@@ -270,11 +271,11 @@ td.mono{font-family:var(--sans);font-size:11px;}
 .drow span:last-child{font-family:var(--sans);font-size:10px;flex-shrink:0;}
 
 .transfers-box{background:var(--dusk);border-radius:var(--r);border:1px solid var(--border);padding:16px;margin-bottom:14px;}
-.transfers-box h3{font-family:var(--sans);font-size:.95rem;color:#10B981;margin-bottom:10px;}
+.transfers-box h3{font-family:var(--sans);font-size:.95rem;color:var(--accent-green);margin-bottom:10px;}
 .tline{display:flex;align-items:center;gap:8px;padding:7px 10px;background:var(--dusk2);border-radius:7px;margin-bottom:6px;font-size:12px;}
-.tarrow{color:#10B981;}
+.tarrow{color:var(--accent-green);}
 .tamt{font-family:var(--sans);font-weight:500;color:#F59E0B;margin-left:auto;}
-.no-transfer{color:#10B981;font-size:12px;}
+.no-transfer{color:var(--accent-green);font-size:12px;}
 
 /* ══ ANALYSIS ═══════════════════════════════════════════════════ */
 .analysis-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
@@ -457,11 +458,11 @@ td.mono{font-family:var(--sans);font-size:11px;}
       </div>
       <div class="row2">
         <div style="background:var(--dusk2);border-radius:9px;padding:11px;">
-          <div class="sub-label" style="font-size:10px;font-weight:600;letter-spacing:.07em;text-transform:uppercase;color:#60A5FA;font-family:var(--sans);margin-bottom:8px;">Who paid?</div>
+          <div class="sub-label" style="font-size:10px;font-weight:600;letter-spacing:.07em;text-transform:uppercase;color:var(--accent-blue);font-family:var(--sans);margin-bottom:8px;">Who paid?</div>
           <div id="paidGrid"></div>
         </div>
         <div style="background:var(--dusk2);border-radius:9px;padding:11px;">
-          <div class="sub-label" style="font-size:10px;font-weight:600;letter-spacing:.07em;text-transform:uppercase;color:#34D399;font-family:var(--sans);margin-bottom:8px;">Split among? <span style="font-weight:400;font-size:9px">(even default)</span></div>
+          <div class="sub-label" style="font-size:10px;font-weight:600;letter-spacing:.07em;text-transform:uppercase;color:var(--accent-green);font-family:var(--sans);margin-bottom:8px;">Split among? <span style="font-weight:400;font-size:9px">(even default)</span></div>
           <div id="shareGrid"></div>
           <div id="shareStatus" class="share-status"></div>
         </div>
@@ -1134,7 +1135,7 @@ function renderICard(item) {
   }
 
   const editing = editItemId === item.id;
-  const expBadge = item.expenseId ? `<span class="pill-tag" style="background:rgba(16,185,129,.12);color:#10B981">💰</span>` : '';
+  const expBadge = item.expenseId ? `<span class="pill-tag" style="background:rgba(16,185,129,.12);color:var(--accent-green)">💰</span>` : '';
   const dimClass = item._stayRole === 'overnight' ? ' stay-dim' : '';
   const uid = item.id.replace(/[^a-z0-9]/gi,'');
 
@@ -1154,7 +1155,7 @@ function renderICard(item) {
       <div class="imeta">
         ${item.duration ? `<span class="mchip">⏱ ${item.duration}</span>` : ''}
         ${item.location ? `<span class="mchip">📍 ${item.location}</span>` : ''}
-        ${item.bookingUrl ? `<a href="${item.bookingUrl}" target="_blank" onclick="event.stopPropagation()" class="mchip" style="color:#10B981">🔗</a>` : ''}
+        ${item.bookingUrl ? `<a href="${item.bookingUrl}" target="_blank" onclick="event.stopPropagation()" class="mchip" style="color:var(--accent-green)">🔗</a>` : ''}
       </div>
       ${notesHtml}
     </div>
@@ -1333,7 +1334,7 @@ function renderTableBody(){
     }).join('');
     const shc=e.shares.map((s,pi)=>{
       if(!e.included[pi])return`<td class="cs mono" style="color:var(--border)">—</td>`;
-      return`<td class="cs mono" style="color:#34D399">${sc.code} ${s.toFixed(2)}</td>`;
+      return`<td class="cs mono" style="color:var(--accent-green)">${sc.code} ${s.toFixed(2)}</td>`;
     }).join('');
     const tags=(e.skip?`<span class="skip-badge">skip</span>`:'')+((!e.isEven&&!e.skip)?`<span class="custom-badge">custom</span>`:'');
     const linked=itinerary.some(it=>it.expenseId===e.id);
@@ -1367,7 +1368,7 @@ function renderCcyTotals(){
     </div>`).join('')+`
     <div class="ccy-card">
       <div class="ccy-label">Total (${sc.code})</div>
-      <div class="ccy-total" style="color:#10B981">${sc.code} ${grand.toFixed(2)}</div>
+      <div class="ccy-total" style="color:var(--accent-green)">${sc.code} ${grand.toFixed(2)}</div>
       <div class="ccy-sub">${active.length} expenses</div>
     </div>`;
 }
