@@ -1116,7 +1116,7 @@ function renderTimeline() {
         <div class="day-date">${d.toLocaleDateString('en-GB',{day:'numeric',month:'short'})}</div>
         <div class="day-dow">${d.toLocaleDateString('en-GB',{weekday:'long'})}</div>
         <div class="day-n">${items.length}</div>
-        </div><div class="day-items">${items.map(renderICard).join('')}</div></div>`;
+        </div><div class="day-items ${items.length>1?'multi':''}">${items.map(renderICard).join('')}</div></div>`;
   });
   if (undated.length) html += `<div class="day-group"><div class="undated-hdr">No date</div>${undated.map(renderICard).join('')}</div>`;
   tl.innerHTML = html;
