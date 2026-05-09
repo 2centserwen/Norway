@@ -992,7 +992,6 @@ function editItem(id) {
   document.getElementById('iLocation').value =e.location||'';
   document.getElementById('iBooking').value  =e.bookingUrl||'';
   document.getElementById('iNotes').value    =e.notes||'';
-  document.getElementById('iAddedBy').value  =e.addedBy||'';
   if(e.type==='stay'){
     document.getElementById('ifCheckinDate').value  = e.checkinDate||e.date||'';
     document.getElementById('ifCheckinTime').value  = e.start||'15:00';
