@@ -1474,7 +1474,7 @@ window.onload = async () => {
     enterApp();
   } catch(e) {
     console.error(e);
-    document.getElementById('loadScreen').classList.add('hidden');
+    // document.getElementById('loadScreen').classList.add('hidden');
     document.getElementById('authScreen').classList.remove('hidden');
     document.getElementById('authMsg').textContent='⚠ Could not connect — check your Supabase keys.';
     document.getElementById('authMsg').style.color='#F87171';
