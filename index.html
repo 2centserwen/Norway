@@ -883,7 +883,7 @@ function recalcExpShareGrid() {
   let ms=0,mc=0;
   incl.forEach(i=>{if(expFormState.overrides[i]!==null){ms+=expFormState.overrides[i];mc++;}});
   const ac=incl.length-mc, as=ac>0?Math.max(0,(total-ms)/ac):0;
-  incl.forEach(i=>{const el=document.getElementById(`es${i}`);if(el&&expFormState.overrides[i]===null)el.placeholder=total>0?as.toFixed(2):'auto';});
+  incl.forEach(i=>{const el=document.getElementById(`es${i}`);if(el&&expFormState.overrides[i]===null)el.placeholder=total>0?as.toFixed(2):'';});
   const diff=total-(ms+as*ac), abs=Math.abs(diff), sc=settleCcy().code;
   if(!total)setExpShareStatus('','');
   else if(abs<0.02)setExpShareStatus(`✓ ${sc} ${total.toFixed(2)}`,'ss-ok');
@@ -1236,7 +1236,7 @@ function recalcExpFormShares(){
   let ms=0,mc=0;
   incl.forEach(i=>{if(expFormState.overrides[i]!==null){ms+=expFormState.overrides[i];mc++;}});
   const ac=incl.length-mc,as=ac>0?Math.max(0,(total-ms)/ac):0;
-  incl.forEach(i=>{const el=document.getElementById(`fs${i}`);if(el&&expFormState.overrides[i]===null)el.placeholder=total>0?as.toFixed(2):'auto';});
+  incl.forEach(i=>{const el=document.getElementById(`fs${i}`);if(el&&expFormState.overrides[i]===null)el.placeholder=total>0?as.toFixed(2):'';});
   const diff=total-(ms+as*ac),abs=Math.abs(diff),sc=settleCcy().code;
   if(!total)setShareStatus('','');
   else if(abs<0.02)setShareStatus(`✓ ${sc} ${total.toFixed(2)}`,'ss-ok');
