@@ -113,6 +113,9 @@ body{font-family:var(--sans);background:var(--night);color:var(--paper);min-heig
 .exp-section.on{display:block;}
 .exp-section .sub-label{font-size:10px;font-weight:600;letter-spacing:.07em;text-transform:uppercase;color:var(--activity);font-family:var(--sans);margin-bottom:10px;}
 
+/* stay overnight badge */
+.overnight-badge{display:inline-block;font-size:9px;padding:1px 6px;border-radius:4px;background:rgba(245,158,11,.15);color:var(--stay);font-family:var(--sans);margin-left:3px;vertical-align:middle;}
+
 /* timeline */
 .filter-bar{display:flex;gap:6px;margin-bottom:14px;flex-wrap:wrap;align-items:center;}
 .fbtn{padding:4px 11px;border-radius:20px;border:1px solid var(--border);background:transparent;color:var(--muted);font-size:11px;cursor:pointer;font-family:var(--sans);transition:all .15s;}
@@ -135,6 +138,7 @@ body{font-family:var(--sans);background:var(--night);color:var(--paper);min-heig
 .icard.stay::before{background:var(--stay);}
 .icard:active{background:var(--dusk2);}
 .icard.editing{border-color:var(--stay);background:rgba(245,158,11,.04);}
+.icard.stay-dim{opacity:.7;}
 
 .iico{font-size:18px;width:32px;height:32px;display:flex;align-items:center;justify-content:center;border-radius:8px;flex-shrink:0;}
 .iico.transport{background:rgba(59,130,246,.12);}
@@ -285,6 +289,10 @@ td.mono{font-family:var(--sans);font-size:11px;}
 .stat-lbl{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;font-family:var(--sans);margin-bottom:2px;}
 .stat-val{font-family:var(--sans);font-size:.95rem;font-weight:500;}
 
+.notes-toggle{background:none;border:1px solid var(--border);border-radius:12px;padding:2px 8px;font-size:10px;color:var(--muted);cursor:pointer;font-family:var(--sans);margin-top:5px;transition:all .15s;}
+.notes-toggle:active{border-color:var(--muted);color:var(--paper);}
+.notes-panel{font-size:11px;color:var(--muted);margin-top:5px;line-height:1.5;padding:6px 8px;background:var(--dusk2);border-radius:7px;}
+
 /* ── TOAST ── */
 .toast{position:fixed;bottom:20px;right:16px;background:var(--paper);color:var(--ink);padding:8px 14px;border-radius:8px;font-size:12px;transform:translateY(20px);opacity:0;transition:all .2s;pointer-events:none;z-index:999;font-family:var(--sans);}
 .toast.show{transform:translateY(0);opacity:1;}
@@ -327,9 +335,9 @@ td.mono{font-family:var(--sans);font-size:11px;}
   <div class="section active" id="tab-itinerary">
     <div class="filter-bar">
       <button class="fbtn active" data-f="all" onclick="setIFilter('all')">All</button>
-      <button class="fbtn ft" data-f="transport" onclick="setIFilter('transport')">🚆</button>
-      <button class="fbtn fa" data-f="activity"  onclick="setIFilter('activity')">🎭</button>
-      <button class="fbtn fs" data-f="stay"      onclick="setIFilter('stay')">🏨</button>
+      <button class="fbtn ft" data-f="transport" onclick="setIFilter('transport')">🚃</button>
+      <button class="fbtn fa" data-f="activity"  onclick="setIFilter('activity')">🥾</button>
+      <button class="fbtn fs" data-f="stay"      onclick="setIFilter('stay')">🏩</button>
       <span class="icount" id="icount"></span>
     </div>
     <div id="timeline"></div>
@@ -345,9 +353,9 @@ td.mono{font-family:var(--sans);font-size:11px;}
       </div>
 
       <div class="type-row">
-        <button class="type-btn" id="btn-transport" onclick="setType('transport')"><span class="ti">🚆</span>Transport</button>
-        <button class="type-btn" id="btn-activity"  onclick="setType('activity')"><span class="ti">🎭</span>Activity</button>
-        <button class="type-btn" id="btn-stay"      onclick="setType('stay')"><span class="ti">🏨</span>Stay</button>
+        <button class="type-btn" id="btn-transport" onclick="setType('transport')"><span class="ti">🚃</span>Transport</button>
+        <button class="type-btn" id="btn-activity"  onclick="setType('activity')"><span class="ti">🥾</span>Activity</button>
+        <button class="type-btn" id="btn-stay"      onclick="setType('stay')"><span class="ti">🏩</span>Stay</button>
       </div>
       <div class="sub-row" id="subRow"></div>
 
@@ -369,10 +377,16 @@ td.mono{font-family:var(--sans);font-size:11px;}
           <select id="iDur"><option value="">—</option><option>30 min</option><option>1 hour</option><option>1.5 hours</option><option>2 hours</option><option>3 hours</option><option>4 hours</option><option>Half day</option><option>Full day</option></select>
         </div>
       </div>
+
+      <!-- STAY: check-in and check-out with date + time -->
       <div id="stayFields" style="display:none">
         <div class="row2">
-          <div class="field"><label>Check-in</label><input id="iCheckin" type="time" value="15:00"></div>
-          <div class="field"><label>Check-out</label><input id="iCheckout" type="time" value="11:00"></div>
+          <div class="field"><label>Check-in date</label><input id="ifCheckinDate" type="date"></div>
+          <div class="field"><label>Check-in time</label><input id="ifCheckinTime" type="time" value="15:00"></div>
+        </div>
+        <div class="row2">
+          <div class="field"><label>Check-out date</label><input id="ifCheckoutDate" type="date"></div>
+          <div class="field"><label>Check-out time</label><input id="ifCheckoutTime" type="time" value="11:00"></div>
         </div>
       </div>
 
@@ -381,7 +395,7 @@ td.mono{font-family:var(--sans);font-size:11px;}
         <label>Location</label>
         <div id="savedLocsArea"></div>
         <div class="loc-wrap">
-          <input id="iLocation" type="text" placeholder="Search or type…" autocomplete="off"
+          <input id="iLocation" type="text" placeholder="Location (optional)" autocomplete="off"
                  oninput="onLocInput()" onblur="setTimeout(clearLocRes,200)">
           <div class="loc-results" id="locResults" style="display:none"></div>
         </div>
@@ -389,12 +403,6 @@ td.mono{font-family:var(--sans);font-size:11px;}
 
       <div class="field"><label>Booking URL / ref</label><input id="iBooking" type="text" placeholder="https://… or ref number"></div>
       <div class="field"><label>Notes</label><textarea id="iNotes" placeholder="Any useful info…"></textarea></div>
-
-      <div class="field">
-        <label>Who's going</label>
-        <div class="chip-row" id="iWhoChips"></div>
-      </div>
-      <div class="field"><label>Added by</label><select id="iAddedBy"></select></div>
 
       <!-- Inline expense -->
       <div class="exp-toggle" id="expToggle" onclick="toggleExpSection()">
@@ -487,46 +495,45 @@ td.mono{font-family:var(--sans);font-size:11px;}
 // ══════════════════════════════════════════════════════════════════
 const SUPABASE_URL    = 'https://ttdynmsrkabukswmhuyh.supabase.co';    
 const SUPABASE_KEY    = 'sb_publishable_pYSNnLZ4qYMrQ1l6rfXxPg_wW8538-w';  
-const MASTER_PASS   = 'norway2026';             // change this!
+const MASTER_PASS   = 'norway';
 // ══════════════════════════════════════════════════════════════════
 
 // ── CONSTANTS ─────────────────────────────────────────────────────
 const PCOLS = ['#E8547A','#3B82F6','#10B981','#F59E0B'];
 const SUBTYPES = {
   transport:[
-    {id:'train',icon:'🚆',label:'Train'},{id:'flight',icon:'✈️',label:'Flight'},
+    {id:'train',icon:'🚃',label:'Train'},{id:'flight',icon:'✈️',label:'Flight'},
     {id:'boat',icon:'⛴️',label:'Boat'},{id:'bus',icon:'🚌',label:'Bus'},
     {id:'taxi',icon:'🚕',label:'Taxi'},{id:'other',icon:'🚗',label:'Other'},
   ],
   activity:[
     {id:'food',icon:'🍜',label:'Food'},
-    {id:'nature',icon:'🌿',label:'Hiking & Nature'},
+    {id:'nature',icon:'🥾',label:'Hiking & Nature'},
     {id:'culture',icon:'🎭',label:'Culture'},
     {id:'other',icon:'☀️',label:'Other'},
   ],
   stay:[
     {id:'airbnb',icon:'🏠',label:'Airbnb'},
-    {id:'hotel',icon:'🏨',label:'Hotel'},
+    {id:'hotel',icon:'🏩',label:'Hotel'},
     {id:'other',icon:'🏡',label:'Other'},
   ],
 };
-const TICONS={train:'🚆',flight:'✈️',boat:'⛴️',bus:'🚌',taxi:'🚕',food:'🍜',nature:'🌿',culture:'🎭',airbnb:'🏠',hotel:'🏨',other:'📍'};
+const TICONS={train:'🚃',flight:'✈️',boat:'⛴️',bus:'🚌',taxi:'🚕',food:'🍜',nature:'🥾',culture:'🎭',airbnb:'🏠',hotel:'🏩',other:'📍'};
 const CAT_COLORS={Food:'#F59E0B',Transport:'#3B82F6',Accommodation:'#8B5CF6',Activities:'#10B981',Shopping:'#E8547A',Other:'#6B6B72'};
 const CCY_COLORS={GBP:'#7C3AED',NOK:'#0369A1',EUR:'#065F46',USD:'#1D4ED8'};
 
 // ── STATE ─────────────────────────────────────────────────────────
-let trip = null;           // current trip row
-let expenses = [];         // flat array
-let itinerary = [];        // flat array
-let editExpId = null;      // expense being edited (id)
-let editItemId = null;     // itinerary item being edited (id)
+let trip = null;
+let expenses = [];
+let itinerary = [];
+let editExpId = null;
+let editItemId = null;
 let expFormState = {included:[],overrides:[]};
-let iWhoSel = [];
 let curType = 'transport', curSub = 'train';
 let iFilter = 'all';
 let expSectionOn = false;
 let locTimer = null;
-let savedPlaces = [];  // from localStorage
+let savedPlaces = [];
 
 // ── SUPABASE ──────────────────────────────────────────────────────
 async function sb(path, method='GET', body=null) {
@@ -580,15 +587,11 @@ function enterApp() {
 
 // ── LOAD ──────────────────────────────────────────────────────────
 async function loadAll() {
-  // Load the actual trip
   const TRIP_NAME = 'Norway July 2026';
-  const trips = await sb(
-  `trips?name=eq.${encodeURIComponent(TRIP_NAME)}&select=*`
-  );
+  const trips = await sb(`trips?name=eq.${encodeURIComponent(TRIP_NAME)}&select=*`);
   trip = trips?.[0] || null;
 
   if (!trip) {
-    // Create Norway trip automatically
     trip = {
       id: 'trip_norway_' + Date.now(),
       name: 'Norway 2026',
@@ -612,7 +615,6 @@ async function loadAll() {
     });
   }
 
-  // Load expenses + itinerary
   const [exps, items] = await Promise.all([
     sb(`expenses?trip_id=eq.${trip.id}&select=*&order=created_at.asc`),
     sb(`itinerary_items?trip_id=eq.${trip.id}&select=*&order=date.asc,start_time.asc,created_at.asc`),
@@ -626,16 +628,19 @@ async function loadAll() {
   }));
   sortExpenses();
 
+  // Map itinerary — checkinDate from date, checkoutDate from checkout_date column
   itinerary = (items||[]).map(r=>({
     id:r.id, type:r.type, subtype:r.subtype, title:r.title,
-    date:r.date||'', start:r.start_time||'', end:r.end_time||'',
+    date:r.date||'',
+    checkinDate:r.date||'',
+    checkoutDate:r.checkout_date||'',
+    start:r.start_time||'', end:r.end_time||'',
     duration:r.duration||'', location:r.location||'',
     bookingUrl:r.booking_url||'', notes:r.notes||'',
     status:r.status, addedBy:r.added_by||'', who:r.who||[],
     expenseId:r.expense_id||null,
   }));
 
-  // Load saved places from localStorage
   try { savedPlaces = JSON.parse(localStorage.getItem('norway_places')||'[]'); } catch(e){}
 }
 
@@ -666,12 +671,16 @@ async function upsertExpense(e) {
 async function upsertItem(item, expenseId=null) {
   const row = {
     trip_id:currentTripId(), type:item.type, subtype:item.subtype,
-    title:item.title, date:item.date||null,
+    title:item.title,
+    // For stays, date = checkinDate; for others, date = iDate
+    date:item.type==='stay' ? (item.checkinDate||item.date||null) : (item.date||null),
     start_time:item.start||null, end_time:item.end||null,
     duration:item.duration||null, location:item.location||null,
     booking_url:item.bookingUrl||null, notes:item.notes||null,
     status:item.status, added_by:item.addedBy||null,
     who:item.who, expense_id:expenseId||item.expenseId||null,
+    // checkout_date is a new column — store checkoutDate for stays
+    checkout_date:item.type==='stay' ? (item.checkoutDate||null) : null,
   };
   if (item.id) { await sb(`itinerary_items?id=eq.${item.id}`, 'PATCH', row); }
   else {
@@ -711,7 +720,7 @@ function buildPeopleChips() {
       ${people().length>2?`<button class="prm" onclick="removePerson('${p.id}')">×</button>`:''}
     </div>`).join('');
   if (people().length<4) wrap.innerHTML+=`<button class="add-chip" onclick="addPerson()">＋</button>`;
-  buildHdrPeople(); buildIWhoChips(); buildIAddedBy(); buildExpCcySelect(); buildExpFormCcySelect();
+  buildHdrPeople(); buildExpCcySelect(); buildExpFormCcySelect();
 }
 
 function buildHdrPeople() {
@@ -738,7 +747,7 @@ async function renamePerson(id,name) {
   const p=people().find(p=>p.id===id); if(!p)return;
   p.name=name;
   try{await saveTripMeta();}catch(e){setSyncStatus('err');}
-  rebuildPaidGrid(); rebuildShareGrid(); renderTableHead(); buildIWhoChips(); buildIAddedBy();
+  rebuildPaidGrid(); rebuildShareGrid(); renderTableHead();
 }
 
 // ── CURRENCY chips ────────────────────────────────────────────────
@@ -909,10 +918,13 @@ function resetItemForm() {
   document.getElementById('expTick').textContent='';
   document.getElementById('expSection').classList.remove('on');
   ['iTitle','iLocation','iBooking','iNotes','iStart','iEnd'].forEach(id=>{ const el=document.getElementById(id); if(el)el.value=''; });
+  // Clear stay fields
+  ['ifCheckinDate','ifCheckinTime','ifCheckoutDate','ifCheckoutTime'].forEach(id=>{ const el=document.getElementById(id); if(el)el.value=''; });
+  document.getElementById('ifCheckinTime').value='15:00';
+  document.getElementById('ifCheckoutTime').value='11:00';
   document.getElementById('iStatus').value='planned';
   document.getElementById('iDate').value=new Date().toISOString().split('T')[0];
-  iWhoSel=[...people().map(p=>p.id)];
-  buildIWhoChips(); setType('transport');
+  setType('transport');
 }
 
 function cancelItemEdit() { resetItemForm(); switchTab('itinerary'); }
@@ -921,19 +933,27 @@ async function submitItem() {
   const title=document.getElementById('iTitle').value.trim();
   if(!title){toast('Add a title!');return;}
 
+  const isStay = curType === 'stay';
+  const checkinDate  = isStay ? document.getElementById('ifCheckinDate').value  : '';
+  const checkinTime  = isStay ? document.getElementById('ifCheckinTime').value  : '';
+  const checkoutDate = isStay ? document.getElementById('ifCheckoutDate').value : '';
+  const checkoutTime = isStay ? document.getElementById('ifCheckoutTime').value : '';
+
   const item = {
     id:editItemId||null, type:curType, subtype:curSub, title,
-    date:   document.getElementById('iDate').value,
-    start:  document.getElementById('iStart').value||document.getElementById('iCheckin')?.value||'',
-    end:    document.getElementById('iEnd').value  ||document.getElementById('iCheckout')?.value||'',
-    duration:document.getElementById('iDur')?.value||'',
-    location:document.getElementById('iLocation').value,
+    date:      isStay ? checkinDate : document.getElementById('iDate').value,
+    checkinDate:  checkinDate,
+    checkoutDate: checkoutDate,
+    start:     isStay ? checkinTime  : document.getElementById('iStart').value,
+    end:       isStay ? checkoutTime : document.getElementById('iEnd').value,
+    duration:  document.getElementById('iDur')?.value||'',
+    location:  document.getElementById('iLocation').value,
     bookingUrl:document.getElementById('iBooking').value,
-    notes:  document.getElementById('iNotes').value,
-    status: document.getElementById('iStatus').value,
-    who:    [...iWhoSel],
-    addedBy:document.getElementById('iAddedBy').value,
-    expenseId:null,
+    notes:     document.getElementById('iNotes').value,
+    status:    document.getElementById('iStatus').value,
+    who:       [],
+    addedBy:   '',
+    expenseId: null,
   };
 
   // Handle inline expense
@@ -985,13 +1005,14 @@ function editItem(id) {
   document.getElementById('iNotes').value    =e.notes||'';
   document.getElementById('iAddedBy').value  =e.addedBy||'';
   if(e.type==='stay'){
-    document.getElementById('iCheckin').value =e.start||'15:00';
-    document.getElementById('iCheckout').value=e.end||'11:00';
+    document.getElementById('ifCheckinDate').value  = e.checkinDate||e.date||'';
+    document.getElementById('ifCheckinTime').value  = e.start||'15:00';
+    document.getElementById('ifCheckoutDate').value = e.checkoutDate||'';
+    document.getElementById('ifCheckoutTime').value = e.end||'11:00';
   } else {
     document.getElementById('iStart').value=e.start||'';
     document.getElementById('iEnd').value  =e.end||'';
   }
-  iWhoSel=[...(e.who||[])]; buildIWhoChips();
   switchTab('add-item');
 }
 
@@ -1054,35 +1075,85 @@ function renderTimeline() {
     tl.innerHTML=`<div class="empty-tl"><div class="ei">🗺️</div><h3>Nothing yet</h3><p>Tap + to add your first item.</p></div>`;
     return;
   }
-  const sorted=[...filtered].sort((a,b)=>{
-    if(!a.date&&!b.date)return 0;if(!a.date)return 1;if(!b.date)return -1;
-    if(a.date!==b.date)return a.date.localeCompare(b.date);
-    if(!a.start&&!b.start)return 0;if(!a.start)return 1;if(!b.start)return -1;
+
+  // Expand stays across multiple days
+  const expanded = [];
+  filtered.forEach(item => {
+    if (item.type === 'stay' && item.checkinDate && item.checkoutDate && item.checkoutDate !== item.checkinDate) {
+      // Generate one entry per day the stay covers
+      let cur = new Date(item.checkinDate + 'T12:00:00');
+      const endDate = new Date(item.checkoutDate + 'T12:00:00');
+      while (cur <= endDate) {
+        const d = cur.toISOString().split('T')[0];
+        const role = d === item.checkinDate ? 'checkin' : d === item.checkoutDate ? 'checkout' : 'overnight';
+        expanded.push({...item, _dayDate: d, _stayRole: role});
+        cur.setDate(cur.getDate() + 1);
+      }
+    } else {
+      // Non-stay or single-day stay
+      const dayDate = item.type === 'stay' ? (item.checkinDate || item.date) : item.date;
+      expanded.push({...item, _dayDate: dayDate, _stayRole: item.type === 'stay' ? 'checkin' : null});
+    }
+  });
+
+  // Sort: by date, then by time, then stays last within each day
+  expanded.sort((a, b) => {
+    const da = a._dayDate||'', db = b._dayDate||'';
+    if (!da && !db) return 0; if (!da) return 1; if (!db) return -1;
+    if (da !== db) return da.localeCompare(db);
+    // stays always last
+    if (a.type === 'stay' && b.type !== 'stay') return 1;
+    if (b.type === 'stay' && a.type !== 'stay') return -1;
+    if (!a.start && !b.start) return 0; if (!a.start) return 1; if (!b.start) return -1;
     return a.start.localeCompare(b.start);
   });
-  const groups={}, undated=[];
-  sorted.forEach(x=>{if(!x.date){undated.push(x);return;} if(!groups[x.date])groups[x.date]=[]; groups[x.date].push(x);});
-  let html='';
-  Object.entries(groups).forEach(([date,items])=>{
-    const d=new Date(date+'T12:00:00');
-    html+=`<div class="day-group">
+
+  // Group by _dayDate
+  const groups = {}, undated = [];
+  expanded.forEach(x => {
+    if (!x._dayDate) { undated.push(x); return; }
+    if (!groups[x._dayDate]) groups[x._dayDate] = [];
+    groups[x._dayDate].push(x);
+  });
+
+  let html = '';
+  Object.entries(groups).forEach(([date, items]) => {
+    const d = new Date(date + 'T12:00:00');
+    html += `<div class="day-group">
       <div class="day-hdr">
         <div class="day-date">${d.toLocaleDateString('en-GB',{day:'numeric',month:'short'})}</div>
         <div class="day-dow">${d.toLocaleDateString('en-GB',{weekday:'long'})}</div>
         <div class="day-n">${items.length}</div>
       </div>${items.map(renderICard).join('')}</div>`;
   });
-  if(undated.length) html+=`<div class="day-group"><div class="undated-hdr">No date</div>${undated.map(renderICard).join('')}</div>`;
-  tl.innerHTML=html;
+  if (undated.length) html += `<div class="day-group"><div class="undated-hdr">No date</div>${undated.map(renderICard).join('')}</div>`;
+  tl.innerHTML = html;
 }
 
 function renderICard(item) {
-  const icon=TICONS[item.subtype]||'📍';
-  const t=item.start?(item.end?`${item.start}–${item.end}`:item.start):'';
-  const wd=(item.who||[]).map(id=>{const p=people().find(x=>x.id===id);return p?`<span class="wdot" style="background:${p.color}"></span>`:''}).join('');
-  const editing=editItemId===item.id;
-  const expBadge=item.expenseId?`<span class="pill-tag" style="background:rgba(16,185,129,.12);color:#10B981">💰</span>`:'';
-  return `<div class="icard ${item.type}${editing?' editing':''}" onclick="editItem('${item.id}')">
+  const icon = TICONS[item.subtype]||'📍';
+
+  // Build time string — only show if set
+  let timeStr = '';
+  if (item.type === 'stay') {
+    if (item._stayRole === 'checkin')      timeStr = item.start ? `Check-in ${item.start}` : 'Check-in';
+    else if (item._stayRole === 'checkout') timeStr = item.end   ? `Check-out ${item.end}`  : 'Check-out';
+    else timeStr = 'Overnight';
+  } else {
+    timeStr = item.start ? (item.end ? `${item.start}–${item.end}` : item.start) : '';
+  }
+
+  const editing = editItemId === item.id;
+  const expBadge = item.expenseId ? `<span class="pill-tag" style="background:rgba(16,185,129,.12);color:#10B981">💰</span>` : '';
+  const dimClass = item._stayRole === 'overnight' ? ' stay-dim' : '';
+  const uid = item.id.replace(/[^a-z0-9]/gi,'');
+
+  // Notes: collapsible, only show toggle if notes exist and not overnight
+  const notesHtml = (item.notes && item._stayRole !== 'overnight') ? `
+    <button class="notes-toggle" onclick="event.stopPropagation();toggleNotes('${uid}')">📋 notes</button>
+    <div class="notes-panel" id="np_${uid}" style="display:none">${item.notes}</div>` : '';
+
+  return `<div class="icard ${item.type}${editing?' editing':''}${dimClass}" onclick="editItem('${item.id}')">
     <div class="iico ${item.type}">${icon}</div>
     <div class="ibody">
       <div class="itop">
@@ -1090,19 +1161,23 @@ function renderICard(item) {
         <span class="sbadge ${item.status}">${item.status}</span>
       </div>
       <div class="imeta">
-        ${t?`<span class="mchip">🕐 ${t}</span>`:''}
-        ${item.duration?`<span class="mchip">⏱ ${item.duration}</span>`:''}
-        ${item.location?`<span class="mchip">📍 ${item.location}</span>`:''}
-        ${item.bookingUrl?`<a href="${item.bookingUrl}" target="_blank" onclick="event.stopPropagation()" class="mchip" style="color:#10B981">🔗</a>`:''}
-        ${item.addedBy?`<span class="mchip">👤 ${item.addedBy}</span>`:''}
-        ${wd?`<div class="wdots">${wd}</div>`:''}
+        ${timeStr ? `<span class="mchip">🕐 ${timeStr}</span>` : ''}
+        ${item.duration ? `<span class="mchip">⏱ ${item.duration}</span>` : ''}
+        ${item.location ? `<span class="mchip">📍 ${item.location}</span>` : ''}
+        ${item.bookingUrl ? `<a href="${item.bookingUrl}" target="_blank" onclick="event.stopPropagation()" class="mchip" style="color:#10B981">🔗</a>` : ''}
       </div>
-      ${item.notes?`<div class="inotes">${item.notes}</div>`:''}
+      ${notesHtml}
     </div>
     <div class="iactions">
       <button class="iact del" onclick="event.stopPropagation();deleteItem('${item.id}')">✕</button>
     </div>
   </div>`;
+}
+
+function toggleNotes(uid) {
+  const el = document.getElementById('np_'+uid);
+  if (!el) return;
+  el.style.display = el.style.display === 'none' ? 'block' : 'none';
 }
 
 // ══ EXPENSE FORM ══════════════════════════════════════════════════
@@ -1271,7 +1346,6 @@ function renderTableBody(){
       return`<td class="cs mono" style="color:#34D399">${sc.code} ${s.toFixed(2)}</td>`;
     }).join('');
     const tags=(e.skip?`<span class="skip-badge">skip</span>`:'')+((!e.isEven&&!e.skip)?`<span class="custom-badge">custom</span>`:'');
-    // Check if linked from itinerary
     const linked=itinerary.some(it=>it.expenseId===e.id);
     const linkedTag=linked?`<span class="linked-badge">itinerary</span>`:'';
     return`<tr class="${editing?'isedit':''}">
@@ -1397,13 +1471,7 @@ window.onload = async () => {
     iWhoSel=[...people().map(p=>p.id)];
     buildIWhoChips();
     renderTimeline(); renderAll();
-    // No auth check for now
-  //  checkAuth();
     enterApp();
-    if(!document.getElementById('authScreen').classList.contains('hidden')) {
-      const orig=enterApp;
-      window.enterApp=()=>{orig();};
-    }
   } catch(e) {
     console.error(e);
     document.getElementById('loadScreen').classList.add('hidden');
