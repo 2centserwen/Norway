@@ -800,6 +800,7 @@ function setType(type) {
   document.getElementById('timeFields').style.display   = type!=='stay'    ?'':'none';
   document.getElementById('durField').style.display     = type==='activity'?'':'none';
   document.getElementById('stayFields').style.display   = type==='stay'    ?'':'none';
+  document.getElementById('iDate').closest('.row2').style.display = type==='stay' ? 'none' : '';
   buildSavedLocs();
 }
 function setSub(id){
@@ -1070,7 +1071,7 @@ function renderTimeline() {
       // Generate one entry per day the stay covers
       let cur = new Date(item.checkinDate + 'T12:00:00');
       const endDate = new Date(item.checkoutDate + 'T12:00:00');
-      while (cur <= endDate) {
+      while (cur < endDate) {
         const d = cur.toISOString().split('T')[0];
         const role = d === item.checkinDate ? 'checkin' : d === item.checkoutDate ? 'checkout' : 'overnight';
         expanded.push({...item, _dayDate: d, _stayRole: role});
