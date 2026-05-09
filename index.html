@@ -211,7 +211,7 @@ body{font-family:var(--sans);background:var(--night);color:var(--paper);min-heig
 .chip-toggle input{display:none;}
 .chip-face{display:flex;align-items:center;gap:5px;padding:4px 9px;border-radius:14px;border:1.5px solid var(--border);background:var(--dusk2);font-size:11px;font-weight:500;cursor:pointer;transition:all .15s;white-space:nowrap;min-width:60px;}
 .share-amt{flex:1;position:relative;}
-.share-sym{position:absolute;left:7px;top:50%;transform:translateY(-50%);font-family:var(--sans);font-size:10px;color:var(--muted);pointer-events:none;}
+.share-sym{position:absolute;left:7px;top:50%;transform:translateY(-50%);font-family:var(--sans);font-size:var(--text-xs);color:var(--muted);pointer-events:none;z-index:1;}
 .share-amt input{font-family:var(--sans);font-size:12px;padding:6px 8px 6px 18px;border:1px solid var(--border);border-radius:7px;width:100%;outline:none;background:var(--dusk2);color:var(--ink);transition:border-color .15s,opacity .15s;}
 .share-amt input:disabled{opacity:.25;cursor:not-allowed;}
 .share-status{font-family:var(--sans);font-size:10px;padding:4px 8px;border-radius:5px;margin-top:6px;}
@@ -869,7 +869,7 @@ function buildExpShareGrid() {
       </label>
       <div class="share-amt">
         <span class="share-sym">${sc.code}</span>
-        <input type="text" inputmode="decimal" id="es${i}" placeholder="auto" oninput="onExpShareIn(${i})">
+        <input type="text" inputmode="decimal" id="es${i}" placeholder="" oninput="onExpShareIn(${i})">
       </div>
     </div>`).join('');
 }
@@ -1222,7 +1222,7 @@ function rebuildShareGrid() {
       <div class="share-amt">
         <span class="share-sym">${sc.code}</span>
         <input type="text" inputmode="decimal" id="fs${i}"
-               value="${(ov!==null&&ov!==undefined)?ov:''}" placeholder="auto"
+               value="${(ov!==null&&ov!==undefined)?ov:''}" placeholder=""
                ${!on?'disabled':''} oninput="onExpFormShareIn(${i})">
       </div>
     </div>`;
