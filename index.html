@@ -337,7 +337,7 @@ td.mono{font-family:var(--sans);font-size:11px;}
       <button class="fbtn active" data-f="all" onclick="setIFilter('all')">All</button>
       <button class="fbtn ft" data-f="transport" onclick="setIFilter('transport')">🚃</button>
       <button class="fbtn fa" data-f="activity"  onclick="setIFilter('activity')">🥾</button>
-      <button class="fbtn fs" data-f="stay"      onclick="setIFilter('stay')">🏩</button>
+      <button class="fbtn fs" data-f="stay"      onclick="setIFilter('stay')">🛌</button>
       <span class="icount" id="icount"></span>
     </div>
     <div id="timeline"></div>
@@ -355,7 +355,7 @@ td.mono{font-family:var(--sans);font-size:11px;}
       <div class="type-row">
         <button class="type-btn" id="btn-transport" onclick="setType('transport')"><span class="ti">🚃</span>Transport</button>
         <button class="type-btn" id="btn-activity"  onclick="setType('activity')"><span class="ti">🥾</span>Activity</button>
-        <button class="type-btn" id="btn-stay"      onclick="setType('stay')"><span class="ti">🏩</span>Stay</button>
+        <button class="type-btn" id="btn-stay"      onclick="setType('stay')"><span class="ti">🛌</span>Stay</button>
       </div>
       <div class="sub-row" id="subRow"></div>
 
@@ -514,11 +514,11 @@ const SUBTYPES = {
   ],
   stay:[
     {id:'airbnb',icon:'🏠',label:'Airbnb'},
-    {id:'hotel',icon:'🏩',label:'Hotel'},
+    {id:'hotel',icon:'🛌',label:'Hotel'},
     {id:'other',icon:'🏡',label:'Other'},
   ],
 };
-const TICONS={train:'🚃',flight:'✈️',boat:'⛴️',bus:'🚌',taxi:'🚕',food:'🍜',nature:'🥾',culture:'🎭',airbnb:'🏠',hotel:'🏩',other:'📍'};
+const TICONS={train:'🚃',flight:'✈️',boat:'⛴️',bus:'🚌',taxi:'🚕',food:'🍜',nature:'🥾',culture:'🎭',airbnb:'🏠',hotel:'🛌',other:'📍'};
 const CAT_COLORS={Food:'#F59E0B',Transport:'#3B82F6',Accommodation:'#8B5CF6',Activities:'#10B981',Shopping:'#E8547A',Other:'#6B6B72'};
 const CCY_COLORS={GBP:'#7C3AED',NOK:'#0369A1',EUR:'#065F46',USD:'#1D4ED8'};
 
