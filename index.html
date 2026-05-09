@@ -810,17 +810,6 @@ function setSub(id){
   });
 }
 
-function buildIWhoChips() {
-  document.getElementById('iWhoChips').innerHTML=people().map(p=>`
-    <button class="chip ${iWhoSel.includes(p.id)?'on':''}"
-            style="${iWhoSel.includes(p.id)?`background:${p.color};border-color:${p.color}`:`border-color:${p.color}40`}"
-            onclick="toggleIWho('${p.id}')">${p.name}</button>`).join('');
-}
-function toggleIWho(id){ iWhoSel=iWhoSel.includes(id)?iWhoSel.filter(x=>x!==id):[...iWhoSel,id]; buildIWhoChips(); }
-function buildIAddedBy() {
-  document.getElementById('iAddedBy').innerHTML=people().map(p=>`<option value="${p.name}">${p.name}</option>`).join('');
-}
-
 // ── Inline expense ────────────────────────────────────────────────
 function toggleExpSection() {
   expSectionOn=!expSectionOn;
@@ -1466,10 +1455,8 @@ window.onload = async () => {
     document.getElementById('hdrTrip').textContent = trip?.name||'Norway 2026';
     buildPeopleChips(); buildCcyChips();
     rebuildPaidGrid(); rebuildShareGrid();
-    buildIWhoChips(); buildIAddedBy();
     setType('transport'); buildSavedLocs();
     iWhoSel=[...people().map(p=>p.id)];
-    buildIWhoChips();
     renderTimeline(); renderAll();
     enterApp();
   } catch(e) {
