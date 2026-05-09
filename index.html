@@ -637,7 +637,7 @@ async function loadAll() {
     start:r.start_time||'', end:r.end_time||'',
     duration:r.duration||'', location:r.location||'',
     bookingUrl:r.booking_url||'', notes:r.notes||'',
-    status:r.status, addedBy:r.added_by||'', who:r.who||[],
+    status:r.status, who:r.who||[],
     expenseId:r.expense_id||null,
   }));
 
@@ -677,7 +677,7 @@ async function upsertItem(item, expenseId=null) {
     start_time:item.start||null, end_time:item.end||null,
     duration:item.duration||null, location:item.location||null,
     booking_url:item.bookingUrl||null, notes:item.notes||null,
-    status:item.status, added_by:item.addedBy||null,
+    status:item.status,
     who:item.who, expense_id:expenseId||item.expenseId||null,
     // checkout_date is a new column — store checkoutDate for stays
     checkout_date:item.type==='stay' ? (item.checkoutDate||null) : null,
@@ -941,7 +941,6 @@ async function submitItem() {
     notes:     document.getElementById('iNotes').value,
     status:    document.getElementById('iStatus').value,
     who:       [],
-    addedBy:   '',
     expenseId: null,
   };
 
