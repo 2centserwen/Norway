@@ -301,6 +301,18 @@ td.mono{font-family:var(--sans);font-size:var(--text-sm);}
 /* ── TOAST ── */
 .toast{position:fixed;bottom:20px;right:16px;background:var(--paper);color:var(--ink);padding:8px 14px;border-radius:8px;font-size:var(--text-sm);transform:translateY(20px);opacity:0;transition:all .2s;pointer-events:none;z-index:999;font-family:var(--sans);}
 .toast.show{transform:translateY(0);opacity:1;}
+
+@media(max-width:600px){
+  .icard{grid-template-columns:3.8rem 1.2rem 1fr;}
+  .day-items.multi::before{left:4.6rem;}
+  .icard-time{font-size:var(--text-xs);}
+  .day-date{font-size:var(--text-lg);}
+  .day-dow{font-size:var(--text-base);}
+  .row2{grid-template-columns:1fr;}
+  .row3{grid-template-columns:1fr;}
+  .settings-row{grid-template-columns:1fr;}
+  .tab{padding:12px 10px;font-size:var(--text-xs);}
+  .tbl-wrap{overflow-x:auto;}
 </style>
 </head>
 <body>
