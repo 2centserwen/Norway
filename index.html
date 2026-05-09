@@ -1208,9 +1208,10 @@ function getExpFormTotal(){
 
 function rebuildShareGrid() {
   const sc=settleCcy();
+  if(!expFormState.included.length) expFormState={included:people().map(()=>true),overrides:people().map(()=>null)};
   document.getElementById('shareGrid').innerHTML=people().map((p,i)=>{
     const on=expFormState.included[i]!==false;
-    const ov=expFormState.overrides[i];
+    const ov=expFormState.overrides[i]??null;
     return `<div class="share-row">
       <label class="chip-toggle">
         <input type="checkbox" id="fi${i}" ${on?'checked':''} onchange="onExpFormIncl(${i})">
@@ -1221,7 +1222,7 @@ function rebuildShareGrid() {
       <div class="share-amt">
         <span class="share-sym">${sc.code}</span>
         <input type="text" inputmode="decimal" id="fs${i}"
-               value="${ov!==null?ov:''}" placeholder="auto"
+               value="${(ov!==null&&ov!==undefined)?ov:''}" placeholder="auto"
                ${!on?'disabled':''} oninput="onExpFormShareIn(${i})">
       </div>
     </div>`;
