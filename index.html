@@ -4,17 +4,17 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Norway Trip</title>
-<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400;1,600&display=swap" rel="stylesheet">
 <style>
 /* ══ DESIGN TOKENS ══════════════════════════════════════════════ */
 :root {
-  --night:#0E0E10; --dusk:#1A1A1F; --dusk2:#242428; --border:#2E2E34;
-  --muted:#6B6B72; --paper:#F4F1EB; --ink:#0E0E10;
+  --night:#F4F1EB; --dusk:#FDFBF7; --paper:#0E0E10; --ink:#0E0E10;
+  --dusk2:#EDE9E0; --border:#DDD9CF; --muted:#9A9188;
   --transport:#3B82F6; --activity:#10B981; --stay:#F59E0B;
   --accent:#2A5C45; --accent-light:#D8F3DC;
   --warn:#C4410C;
   --serif:'Cormorant Garamond',Georgia,serif;
-  --sans:'DM Sans',sans-serif; --mono:'DM Mono',monospace;
+  --sans:'Cormorant Garamond',Georgia,serif; --mono:'Cormorant Garamond',Georgia,serif;
   --r:12px; --shadow:0 1px 2px rgba(0,0,0,.1),0 4px 20px rgba(0,0,0,.15);
 }
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
@@ -43,7 +43,7 @@ body{font-family:var(--sans);background:var(--night);color:var(--paper);min-heig
 #app.on{display:flex;}
 
 /* ── HEADER ── */
-.hdr{background:var(--dusk);border-bottom:1px solid var(--border);padding:0 20px;height:52px;display:flex;align-items:center;gap:12px;flex-shrink:0;}
+.hdr{background:#1A1814;border-bottom:1px solid #2E2A24;padding:0 20px;height:52px;display:flex;align-items:center;gap:12px;flex-shrink:0;}
 .hdr-logo{font-family:var(--sans);font-size:1.3rem;color:var(--paper);white-space:nowrap;}
 .hdr-logo span{color:var(--stay);}
 .hdr-trip{font-family:var(--sans);font-size:13px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:160px;}
@@ -59,7 +59,7 @@ body{font-family:var(--sans);background:var(--night);color:var(--paper);min-heig
 .hpill{width:8px;height:8px;border-radius:50%;}
 
 /* ── TABS ── */
-.tabs{background:var(--dusk);border-bottom:1px solid var(--border);padding:0 20px;display:flex;flex-shrink:0;overflow-x:auto;}
+.tabs{background:#1A1814;border-bottom:1px solid #2E2A24;padding:0 20px;display:flex;flex-shrink:0;overflow-x:auto;}
 .tab{padding:10px 14px;font-size:11px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;transition:all .15s;font-family:var(--sans);white-space:nowrap;flex-shrink:0;}
 .tab.active{color:var(--paper);border-bottom-color:var(--paper);}
 
@@ -125,45 +125,42 @@ body{font-family:var(--sans);background:var(--night);color:var(--paper);min-heig
 .fbtn.fs.active{border-color:var(--stay);color:var(--stay);background:rgba(245,158,11,.08);}
 .icount{font-family:var(--sans);font-size:11px;color:var(--muted);margin-left:auto;}
 
-.day-group{margin-bottom:24px;}
-.day-hdr{display:flex;align-items:baseline;gap:10px;margin-bottom:10px;padding-bottom:7px;border-bottom:1px solid var(--border);}
-.day-date{font-family:var(--sans);font-size:1.2rem;}
-.day-dow{font-family:var(--sans);font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;}
-.day-n{font-family:var(--sans);font-size:10px;color:var(--muted);margin-left:auto;}
+.day-group{margin-bottom:40px;}
+.day-hdr{display:flex;align-items:baseline;gap:12px;margin-bottom:20px;padding-bottom:10px;border-bottom:2px solid var(--ink);}
+.day-date{font-family:var(--serif);font-size:1.8rem;font-style:italic;color:var(--ink);}
+.day-dow{font-family:var(--serif);font-size:1rem;color:var(--muted);font-style:italic;}
+.day-n{font-family:var(--serif);font-size:.85rem;color:var(--muted);margin-left:auto;}
 
-.icard{display:flex;gap:10px;background:var(--dusk);border:1px solid var(--border);border-radius:var(--r);padding:11px 13px;margin-bottom:7px;position:relative;overflow:hidden;cursor:pointer;transition:border-color .15s;}
-.icard::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;}
-.icard.transport::before{background:var(--transport);}
-.icard.activity::before{background:var(--activity);}
-.icard.stay::before{background:var(--stay);}
-.icard:active{background:var(--dusk2);}
-.icard.editing{border-color:var(--stay);background:rgba(245,158,11,.04);}
-.icard.stay-dim{opacity:.7;}
+.icard{display:grid;grid-template-columns:70px 1fr auto;gap:0 16px;padding:8px 0;margin-bottom:0;position:relative;cursor:pointer;border:none;background:transparent;border-radius:0;overflow:visible;}
+.icard::before{display:none;}
+.icard::after{content:'';position:absolute;left:70px;top:0;bottom:0;width:1px;background:var(--border);}
+.icard:active{background:transparent;}
+.icard.editing{background:transparent;border:none;}
+.icard.stay-dim{opacity:.55;}
 
-.iico{font-size:18px;width:32px;height:32px;display:flex;align-items:center;justify-content:center;border-radius:8px;flex-shrink:0;}
-.iico.transport{background:rgba(59,130,246,.12);}
-.iico.activity{background:rgba(16,185,129,.12);}
-.iico.stay{background:rgba(245,158,11,.12);}
+.icard-time{font-family:var(--serif);font-size:.95rem;color:var(--muted);text-align:right;padding-top:2px;font-style:italic;}
+.iico{display:none;}
 
-.ibody{flex:1;min-width:0;}
-.itop{display:flex;align-items:flex-start;gap:6px;margin-bottom:3px;}
-.ititle{font-size:13px;font-weight:500;color:var(--paper);flex:1;line-height:1.3;}
-.sbadge{font-family:var(--sans);font-size:9px;padding:2px 6px;border-radius:4px;flex-shrink:0;}
-.sbadge.planned{background:rgba(107,107,114,.2);color:var(--muted);}
-.sbadge.booked{background:rgba(16,185,129,.15);color:#10B981;}
-.imeta{display:flex;flex-wrap:wrap;gap:5px;align-items:center;margin-top:3px;}
-.mchip{font-family:var(--sans);font-size:10px;color:var(--muted);}
-.inotes{font-size:11px;color:var(--muted);margin-top:4px;line-height:1.4;}
+.ibody{padding:2px 0 14px 16px;border:none;}
+.itop{display:flex;align-items:flex-start;gap:8px;margin-bottom:2px;}
+.ititle{font-family:var(--serif);font-size:1.05rem;color:var(--ink);flex:1;line-height:1.3;font-weight:600;}
+.sbadge{font-family:var(--serif);font-size:.75rem;padding:1px 7px;border-radius:3px;flex-shrink:0;font-style:italic;}
+.sbadge.planned{background:transparent;color:var(--muted);border:1px solid var(--border);}
+.sbadge.booked{background:transparent;color:#2A5C45;border:1px solid #2A5C45;}
+.imeta{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:2px;}
+.mchip{font-family:var(--serif);font-size:.85rem;color:var(--muted);}
+.iactions{display:flex;gap:4px;flex-shrink:0;padding-top:2px;}
+.iact{background:none;border:none;border-radius:5px;padding:2px 5px;font-size:11px;color:var(--muted);cursor:pointer;opacity:0;transition:opacity .15s;}
+.icard:hover .iact{opacity:1;}
+.iact.del:hover{color:#C4404A;}
+.notes-toggle{background:none;border:none;border-radius:0;padding:0;font-size:.8rem;color:var(--muted);cursor:pointer;font-family:var(--serif);font-style:italic;text-decoration:underline;text-underline-offset:2px;margin-top:3px;}
+.notes-panel{font-size:.85rem;color:var(--muted);margin-top:4px;line-height:1.6;font-family:var(--serif);font-style:italic;}
 .wdots{display:flex;gap:3px;}
 .wdot{width:5px;height:5px;border-radius:50%;}
-.iactions{display:flex;gap:4px;flex-shrink:0;align-self:flex-start;}
-.iact{background:none;border:1px solid var(--border);border-radius:5px;padding:3px 7px;font-size:11px;color:var(--muted);cursor:pointer;font-family:var(--sans);}
-.iact.del:active{border-color:#EF4444;color:#EF4444;}
-
-.undated-hdr{font-family:var(--sans);font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px;padding-bottom:6px;border-bottom:1px dashed var(--border);}
+.undated-hdr{font-family:var(--serif);font-size:.8rem;color:var(--muted);text-transform:uppercase;letter-spacing:.1em;margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid var(--border);font-style:italic;}
 .empty-tl{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:40vh;gap:10px;color:var(--muted);text-align:center;}
 .empty-tl .ei{font-size:36px;opacity:.4;}
-.empty-tl h3{font-family:var(--sans);font-size:1.2rem;color:var(--paper);}
+.empty-tl h3{font-family:var(--serif);font-size:1.4rem;color:var(--ink);font-style:italic;}
 
 /* location search */
 .loc-wrap{position:relative;}
@@ -1142,14 +1139,13 @@ function renderICard(item) {
     <div class="notes-panel" id="np_${uid}" style="display:none">${item.notes}</div>` : '';
 
   return `<div class="icard ${item.type}${editing?' editing':''}${dimClass}" onclick="editItem('${item.id}')">
-    <div class="iico ${item.type}">${icon}</div>
+    <div class="icard-time">${timeStr||'—'}</div>
     <div class="ibody">
       <div class="itop">
         <div class="ititle">${item.title}${expBadge}</div>
         <span class="sbadge ${item.status}">${item.status}</span>
       </div>
       <div class="imeta">
-        ${timeStr ? `<span class="mchip">🕐 ${timeStr}</span>` : ''}
         ${item.duration ? `<span class="mchip">⏱ ${item.duration}</span>` : ''}
         ${item.location ? `<span class="mchip">📍 ${item.location}</span>` : ''}
         ${item.bookingUrl ? `<a href="${item.bookingUrl}" target="_blank" onclick="event.stopPropagation()" class="mchip" style="color:#10B981">🔗</a>` : ''}
@@ -1326,8 +1322,8 @@ function renderTableBody(){
     const editing=editExpId===e.id;
     const pc=e.paid.map((p,pi)=>{
       if(!p.orig)return`<td class="cp mono" style="color:var(--border)">—</td>`;
-      const hint=e.ccy!==sc.code?`<br><span style="font-size:9px;color:var(--muted)">${e.ccy} ${p.orig.toFixed(2)}</span>`:'';
-      return`<td class="cp mono" style="color:${people()[pi]?.color};font-weight:600">${sc.code} ${p.settle.toFixed(2)}${hint}</td>`;
+      const hint=e.ccy!==sc.code&&p.orig?`<br><span style="font-size:9px;color:var(--muted)">${e.ccy} ${p.orig.toFixed(2)}</span>`:'';
+      return`<td class="cp mono" style="color:${people()[pi]?.color};font-weight:600">${sc.code} ${(p.settle||0).toFixed(2)}${hint}</td>`;
     }).join('');
     const shc=e.shares.map((s,pi)=>{
       if(!e.included[pi])return`<td class="cs mono" style="color:var(--border)">—</td>`;
